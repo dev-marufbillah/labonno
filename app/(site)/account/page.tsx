@@ -8,6 +8,8 @@ import { formatMoney, formatDate } from "@/lib/utils/format";
 import { ORDER_STATUS_LABELS } from "@/lib/config/site";
 import { StatusBadge } from "@/components/ui/badge";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "My account", robots: { index: false, follow: false } };
 
 export default async function AccountPage() {

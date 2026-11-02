@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { getPageBySlug } from "@/lib/services/content";
 import { PageHeader } from "@/components/site/page-header";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "About us",
   description:

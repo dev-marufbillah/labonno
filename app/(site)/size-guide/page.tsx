@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getPageBySlug } from "@/lib/services/content";
 import { PageHeader } from "@/components/site/page-header";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Size guide",
   description: "LABONNO garment measurements in inches, with a guide to measuring yourself correctly.",

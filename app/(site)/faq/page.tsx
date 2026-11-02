@@ -4,6 +4,8 @@ import { getFaqs } from "@/lib/services/content";
 import { PageHeader } from "@/components/site/page-header";
 import { Accordion, AccordionItem } from "@/components/ui/accordion";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "FAQ",
   description: "Answers about sizing, made-to-order pieces, delivery, payments and returns at LABONNO.",

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getPageBySlug } from "@/lib/services/content";
 import { LegalPage } from "@/components/site/legal-page";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPageBySlug("return-policy");
   return {

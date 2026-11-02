@@ -5,6 +5,8 @@ import { toCardData } from "@/lib/utils/product-card";
 import { PageHeader } from "@/components/site/page-header";
 import { WishlistView } from "@/components/site/wishlist-view";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Wishlist",
   description: "Pieces you have saved from the LABONNO collection.",

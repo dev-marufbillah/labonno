@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/lib/auth/server";
 import { PageHeader } from "@/components/site/page-header";
 import { CheckoutForm } from "@/components/site/checkout-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Checkout",
   description: "Secure checkout at LABONNO — cash on delivery, bKash, Nagad and card payments.",

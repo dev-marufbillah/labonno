@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/site/page-header";
 import { ListingLayout, ListingSkeleton } from "@/components/site/product-listing";
 import { pickSearchParam, parseList } from "@/lib/utils/helpers";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Search",
   description: "Search the LABONNO collection.",

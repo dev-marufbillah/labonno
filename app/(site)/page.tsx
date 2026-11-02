@@ -11,6 +11,8 @@ import { NewsletterPanel } from "@/components/site/home/newsletter-panel";
 import { EditorialSection } from "@/components/site/home/editorial";
 import type { HomepageSectionDoc } from "@/lib/db/types";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: { absolute: "LABONNO — The Art of Elegance" },
   description:

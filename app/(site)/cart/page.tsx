@@ -3,6 +3,8 @@ import { getSiteSettings } from "@/lib/services/settings";
 import { PageHeader } from "@/components/site/page-header";
 import { CartView } from "@/components/site/cart-view";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Shopping bag",
   description: "Review your LABONNO bag before checkout.",

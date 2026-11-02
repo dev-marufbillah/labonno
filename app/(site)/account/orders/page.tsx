@@ -6,6 +6,8 @@ import { formatMoney, formatDate } from "@/lib/utils/format";
 import { StatusBadge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/site/empty-state";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "My orders", robots: { index: false, follow: false } };
 
 export default async function OrdersPage() {

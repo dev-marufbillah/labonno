@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/server";
 import { RegisterForm } from "@/components/site/auth-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Create account",
   description: "Create a LABONNO account for faster checkout, order tracking and saved pieces.",

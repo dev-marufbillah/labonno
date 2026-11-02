@@ -5,6 +5,8 @@ import { getSiteSettings } from "@/lib/services/settings";
 import { PageHeader } from "@/components/site/page-header";
 import { ContactForm } from "@/components/site/contact-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Contact us",
   description: "Contact the LABONNO studio in Banani, Dhaka for orders, fittings and made-to-measure enquiries.",

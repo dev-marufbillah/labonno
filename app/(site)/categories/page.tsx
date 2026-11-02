@@ -5,6 +5,8 @@ import { ArrowRight } from "lucide-react";
 import { getCategories, getProductCountsByCategory } from "@/lib/services/catalog";
 import { PageHeader } from "@/components/site/page-header";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Categories",
   description: "Explore LABONNO by category — saree, three piece, dresses, tops, bottoms and accessories.",

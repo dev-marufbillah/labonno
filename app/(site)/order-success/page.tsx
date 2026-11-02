@@ -8,6 +8,8 @@ import { formatMoney, formatDate } from "@/lib/utils/format";
 import { PAYMENT_METHOD_LABELS, ORDER_STATUS_LABELS } from "@/lib/config/site";
 import { EmptyState } from "@/components/site/empty-state";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Order confirmed",
   robots: { index: false, follow: false },

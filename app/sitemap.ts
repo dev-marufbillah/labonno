@@ -4,6 +4,8 @@ import { listProducts } from "@/lib/services/products";
 import { getCategories, getCollections } from "@/lib/services/catalog";
 import { getAllPages } from "@/lib/services/content";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = SITE.url.replace(/\/$/, "");
   const [products, categories, collections, pages] = await Promise.all([

@@ -81,7 +81,18 @@ export async function getRevenueSeries(days = 30) {
       { $sort: { _id: 1 } },
     ])
     .toArray();
-  return rows.map((r) => ({ date: r._id, revenue: r.revenue, orders: r.orders }));
+  // Zero-fill the window so the dashboard chart always plots a continuous range
+  // instead of collapsing quiet days.
+  const byDate = new Map(rows.map((r) => [r._id, r]));
+  const series: { date: string; revenue: number; orders: number }[] = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const day = new Date();
+    day.setDate(day.getDate() - i);
+    const key = day.toISOString().slice(0, 10);
+    const row = byDate.get(key);
+    series.push({ date: key, revenue: row?.revenue ?? 0, orders: row?.orders ?? 0 });
+  }
+  return series;
 }
 
 export async function getTopProducts(limit = 5) {

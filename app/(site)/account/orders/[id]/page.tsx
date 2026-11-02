@@ -9,6 +9,8 @@ import { ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } fro
 import { StatusBadge } from "@/components/ui/badge";
 import { CancelOrderButton } from "@/components/site/cancel-order-button";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Order details", robots: { index: false, follow: false } };
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {

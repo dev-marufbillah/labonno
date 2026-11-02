@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth/server";
 import { ProfileForm } from "@/components/site/profile-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "My profile", robots: { index: false, follow: false } };
 
 export default async function ProfilePage() {

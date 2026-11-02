@@ -10,6 +10,7 @@ import type {
   BannerDoc,
   CategoryDoc,
   CollectionDoc,
+  FaqDoc,
   CouponDoc,
   HomepageSectionDoc,
   OrderDoc,
@@ -693,6 +694,8 @@ async function main() {
     "banners",
     "homepage_sections",
     "content_pages",
+    "faqs",
+    "contact_messages",
     "site_settings",
     "inventory_logs",
     "wishlists",
@@ -1057,6 +1060,20 @@ async function main() {
     updatedAt: now,
   }));
   await db.collection<PageDoc>("content_pages").insertMany(pages);
+
+
+  const faqs: FaqDoc[] = [
+    { question: "How do I choose my size?", answer: "Every product page links to our size guide with garment measurements in inches. If you are between sizes, message the studio on WhatsApp with your bust, waist and hip measurements and we will advise before you order.", category: "Orders & sizing", order: 1, visible: true, updatedAt: now },
+    { question: "Do you offer made-to-measure?", answer: "Yes. Pieces marked made-to-order can be tailored to your measurements at no extra cost. Add your measurements in the order note at checkout and allow 10–14 additional days.", category: "Orders & sizing", order: 2, visible: true, updatedAt: now },
+    { question: "Where do you deliver?", answer: "Across all 64 districts of Bangladesh. Inside Dhaka usually arrives in 2–3 business days and outside Dhaka in 3–5 business days from dispatch.", category: "Delivery", order: 1, visible: true, updatedAt: now },
+    { question: "How much is delivery?", answer: "৳80 inside Dhaka and ৳150 outside Dhaka. Delivery is free on orders over ৳2,000. The exact charge for your district is shown at checkout before you pay.", category: "Delivery", order: 2, visible: true, updatedAt: now },
+    { question: "Can I collect from the studio?", answer: "Yes. Ask us to hold your order for studio pickup at House 27, Road 11, Banani, Dhaka. We hold pieces for seven days, Sunday to Thursday, 11am–7pm.", category: "Delivery", order: 3, visible: true, updatedAt: now },
+    { question: "Which payment methods do you accept?", answer: "Cash on delivery, bKash and Nagad. Card and mobile banking payments through SSLCommerz are available when enabled by our team.", category: "Payments", order: 1, visible: true, updatedAt: now },
+    { question: "How is a bKash payment verified?", answer: "Send the exact total to our merchant number, then enter your bKash number and transaction ID at checkout. Our team verifies each transaction with bKash before dispatch — an order is never marked paid automatically.", category: "Payments", order: 2, visible: true, updatedAt: now },
+    { question: "What is your return window?", answer: "Seven days from delivery for unworn, unaltered pieces with tags attached. Made-to-order and altered pieces are final sale. See our Return & Refund policy for the full detail.", category: "Returns", order: 1, visible: true, updatedAt: now },
+    { question: "How long does a refund take?", answer: "Once the return is received and inspected, refunds are issued within 5–7 business days to bKash, Nagad or your original payment method. Delivery charges are non-refundable.", category: "Returns", order: 2, visible: true, updatedAt: now },
+  ];
+  await db.collection<FaqDoc>("faqs").insertMany(faqs);
 
   const coupons: CouponDoc[] = [
     {

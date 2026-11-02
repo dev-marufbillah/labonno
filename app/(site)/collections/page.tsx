@@ -5,6 +5,8 @@ import { ArrowRight } from "lucide-react";
 import { getCollections } from "@/lib/services/catalog";
 import { PageHeader } from "@/components/site/page-header";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Collections",
   description: "LABONNO collections — Timeless Elegance, Black Zari, Sage Fest and Velvet Luxe.",

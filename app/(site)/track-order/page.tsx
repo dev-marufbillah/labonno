@@ -6,6 +6,8 @@ import { ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/config/site";
 import { PageHeader } from "@/components/site/page-header";
 import { Input, Label } from "@/components/ui/input";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Track order",
   description: "Track your LABONNO order with your order number and mobile number.",

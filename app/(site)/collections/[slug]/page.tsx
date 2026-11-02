@@ -7,10 +7,7 @@ import { listProducts, getProductFacets } from "@/lib/services/products";
 import { ListingLayout, ListingSkeleton } from "@/components/site/product-listing";
 import { pickSearchParam, parseList } from "@/lib/utils/helpers";
 
-export async function generateStaticParams() {
-  const collections = await getCollections();
-  return collections.map((collection) => ({ slug: collection.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

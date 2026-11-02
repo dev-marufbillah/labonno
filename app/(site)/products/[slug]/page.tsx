@@ -15,6 +15,8 @@ import { toCardData } from "@/lib/utils/product-card";
 import { effectivePrice, formatDate, formatMoney } from "@/lib/utils/format";
 import { SITE } from "@/lib/config/site";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);

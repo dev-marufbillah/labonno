@@ -7,10 +7,7 @@ import { PageHeader } from "@/components/site/page-header";
 import { ListingLayout, ListingSkeleton } from "@/components/site/product-listing";
 import { pickSearchParam, parseList } from "@/lib/utils/helpers";
 
-export async function generateStaticParams() {
-  const categories = await getCategories();
-  return categories.map((category) => ({ slug: category.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
