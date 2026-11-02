@@ -12,7 +12,7 @@ import { EditorialSection } from "@/components/site/home/editorial";
 import type { HomepageSectionDoc } from "@/lib/db/types";
 
 export const metadata: Metadata = {
-  title: "LABONNO — The Art of Elegance",
+  title: { absolute: "LABONNO — The Art of Elegance" },
   description:
     "Discover handcrafted sarees, three-piece sets, dresses and accessories from LABONNO, a Dhaka-based luxury fashion house. Made in limited runs.",
   alternates: { canonical: "/" },

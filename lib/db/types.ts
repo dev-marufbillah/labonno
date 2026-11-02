@@ -326,3 +326,24 @@ export interface AuditLogDoc {
   meta?: Record<string, unknown>;
   createdAt: Date;
 }
+
+export interface FaqDoc {
+  _id?: ObjectId;
+  question: string;
+  answer: string;
+  category: string;
+  order: number;
+  visible: boolean;
+  updatedAt: Date;
+}
+
+export interface ContactMessageDoc {
+  _id?: ObjectId;
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  status: "new" | "read" | "replied";
+  createdAt: Date;
+}

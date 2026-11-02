@@ -42,7 +42,7 @@ export function HeroCarousel({ slides, autoPlay = true }: { slides: HeroSlide[];
             <div
               key={`${slide.title}-${i}`}
               className={cn(
-                "absolute inset-0 transition-opacity duration-[1100ms] ease-luxe",
+                "absolute inset-0 transition-opacity duration-1000 ease-luxe",
                 i === index ? "opacity-100" : "pointer-events-none opacity-0"
               )}
               aria-hidden={i !== index}

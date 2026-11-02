@@ -4,43 +4,14 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingBag } from "lucide-react";
-import type { ProductDoc } from "@/lib/db/types";
 import { discountPercent, effectivePrice, formatMoney } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useCommerce } from "./commerce-provider";
 import { QuickAddDialog } from "./quick-add-dialog";
+import { type ProductCardData } from "@/lib/utils/product-card";
 
-export interface ProductCardData {
-  _id?: unknown;
-  name: string;
-  slug: string;
-  images: string[];
-  price: number;
-  salePrice?: number | null;
-  sizes?: string[];
-  colors?: { name: string; hex: string }[];
-  variants?: { size: string; color: string; stock: number; sku: string }[];
-  stock?: number;
-  newArrival?: boolean;
-  sku?: string;
-}
-
-export function toCardData(product: ProductDoc): ProductCardData {
-  return {
-    _id: String(product._id),
-    name: product.name,
-    slug: product.slug,
-    images: product.images,
-    price: product.price,
-    salePrice: product.salePrice ?? null,
-    sizes: product.sizes,
-    colors: product.colors,
-    variants: product.variants?.map((v) => ({ size: v.size, color: v.color, stock: v.stock, sku: v.sku })),
-    stock: product.stock,
-    newArrival: product.newArrival,
-    sku: product.sku,
-  };
-}
+export { toCardData } from "@/lib/utils/product-card";
+export type { ProductCardData } from "@/lib/utils/product-card";
 
 export function ProductCard({
   product,
@@ -70,7 +41,7 @@ export function ProductCard({
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               priority={priority}
-              className="object-cover transition-transform duration-[900ms] ease-luxe group-hover:scale-[1.035]"
+              className="object-cover transition-transform duration-700 ease-luxe group-hover:scale-[1.035]"
             />
             {product.images[1] ? (
               <Image

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { formatMoney } from "@/lib/utils/format";
 import { useCommerce } from "./commerce-provider";
-import type { ProductCardData } from "./product-card";
+import type { ProductCardData } from "@/lib/utils/product-card";
 
 export function QuickAddDialog({
   product,

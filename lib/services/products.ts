@@ -169,3 +169,33 @@ export async function resolveVariantPrice(productId: string, size: string, color
     stock: variant?.stock ?? product.stock,
   };
 }
+
+/** Facet values for the storefront filter rail, aggregated across the catalogue. */
+export async function getProductFacets(): Promise<{
+  sizes: string[];
+  colors: { name: string; hex: string }[];
+}> {
+  const productsCol = col<ProductDoc>("products");
+  const [sizeRows, colorRows] = await Promise.all([
+    productsCol
+      .aggregate<{ _id: string }>([
+        { $match: { status: "published" } },
+        { $unwind: "$sizes" },
+        { $group: { _id: "$sizes" } },
+        { $sort: { _id: 1 } },
+      ])
+      .toArray(),
+    productsCol
+      .aggregate<{ _id: string; hex: string }>([
+        { $match: { status: "published" } },
+        { $unwind: "$colors" },
+        { $group: { _id: "$colors.name", hex: { $first: "$colors.hex" } } },
+        { $sort: { _id: 1 } },
+      ])
+      .toArray(),
+  ]);
+  return {
+    sizes: sizeRows.map((r) => String(r._id)),
+    colors: colorRows.map((r) => ({ name: String(r._id), hex: r.hex })),
+  };
+}

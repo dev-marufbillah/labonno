@@ -70,3 +70,11 @@ export async function addSubscriber(email: string, source = "footer"): Promise<{
 export async function listSubscribers(): Promise<SubscriberDoc[]> {
   return col<SubscriberDoc>("subscribers").find({}).sort({ createdAt: -1 }).limit(500).toArray();
 }
+
+export async function getFaqs(): Promise<import("@/lib/db/types").FaqDoc[]> {
+  return col<import("@/lib/db/types").FaqDoc>("faqs").find({ visible: true }).sort({ order: 1 }).toArray();
+}
+
+export async function getAllFaqs() {
+  return col<import("@/lib/db/types").FaqDoc>("faqs").find({}).sort({ order: 1 }).toArray();
+}

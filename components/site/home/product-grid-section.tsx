@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ProductDoc } from "@/lib/db/types";
-import { ProductCard, toCardData } from "@/components/site/product-card";
+import { ProductCard } from "@/components/site/product-card";
+import { toCardData } from "@/lib/utils/product-card";
 import { SectionHeading } from "./section-heading";
 
 export function ProductGridSection({

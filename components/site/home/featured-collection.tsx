@@ -26,7 +26,7 @@ export function FeaturedCollection({
             alt={title}
             fill
             sizes="100vw"
-            className="object-cover transition-transform duration-[1400ms] ease-luxe group-hover:scale-[1.02]"
+            className="object-cover transition-transform duration-1000 ease-luxe group-hover:scale-[1.02]"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-cream/95 via-cream/55 to-transparent md:from-cream/90 md:via-cream/30" />
         </div>

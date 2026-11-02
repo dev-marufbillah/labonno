@@ -16,7 +16,7 @@ export function CategoryArches({ categories }: { categories: CategoryDoc[] }) {
                 alt={category.name}
                 fill
                 sizes="(max-width: 768px) 50vw, 25vw"
-                className="object-cover transition-transform duration-[1100ms] ease-luxe group-hover:scale-[1.04]"
+                className="object-cover transition-transform duration-1000 ease-luxe group-hover:scale-[1.04]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
             </div>
