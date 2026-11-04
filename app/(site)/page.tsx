@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ensureHomepageSections, getHomepageSections, getHeroBanners } from "@/lib/services/content";
 import { getCategories, getCollections } from "@/lib/services/catalog";
-import { getHomepageProducts } from "@/lib/services/products";
+import { getHomepageProducts, getProductsByIds } from "@/lib/services/products";
 import { getSiteSettings } from "@/lib/services/settings";
 import { formatMoney } from "@/lib/utils/format";
 import { listActiveCoupons } from "@/lib/services/coupons";
@@ -47,6 +47,12 @@ export default async function HomePage() {
     const added = await ensureHomepageSections();
     if (added > 0) sections = await getHomepageSections();
   }
+
+  // Product ids chosen by hand in Admin → Homepage (one fetch covers every section).
+  const handpickedIds = sections
+    .filter((section) => section.type === "product_grid")
+    .flatMap((section) => (Array.isArray(section.data?.productIds) ? (section.data.productIds as string[]) : []));
+  const handpickedProducts = handpickedIds.length ? await getProductsByIds(handpickedIds) : [];
 
   const offers: OfferCard[] = coupons.map((coupon) => ({
     code: coupon.code,
@@ -94,9 +100,17 @@ export default async function HomePage() {
       case "category_arches": {
         const slugs = Array.isArray(data.categorySlugs) ? (data.categorySlugs as string[]) : [];
         const list = slugs.length
-          ? slugs.map((slug) => visibleCategories.find((c) => c.slug === slug)).filter(Boolean)
+          ? (slugs.map((slug) => visibleCategories.find((c) => c.slug === slug)).filter(Boolean) as typeof visibleCategories)
           : visibleCategories;
-        return <CategoryArches key={section.key} categories={list as typeof visibleCategories} />;
+        return (
+          <CategoryArches
+            key={section.key}
+            categories={list}
+            limit={typeof data.limit === "number" ? data.limit : 4}
+            showSeeAll={data.seeAll !== false}
+            seeAllHref={typeof data.seeAllHref === "string" && data.seeAllHref ? data.seeAllHref : "/categories"}
+          />
+        );
       }
 
       case "featured_collection": {
@@ -118,12 +132,16 @@ export default async function HomePage() {
       case "product_grid": {
         const source = str("source", "bestSellers");
         const limit = typeof data.limit === "number" ? data.limit : 4;
+        const handpicked = Array.isArray(data.productIds) ? (data.productIds as string[]) : [];
+        const byId = new Map(handpickedProducts.map((item) => [String(item._id), item]));
         const pool =
-          source === "newArrivals"
-            ? products.newArrivals
-            : source === "featured"
-              ? products.featured
-              : products.bestSellers;
+          source === "handpicked"
+            ? (handpicked.map((id) => byId.get(id)).filter(Boolean) as typeof products.featured)
+            : source === "newArrivals"
+              ? products.newArrivals
+              : source === "featured"
+                ? products.featured
+                : products.bestSellers;
         return (
           <ProductGridSection
             key={section.key}

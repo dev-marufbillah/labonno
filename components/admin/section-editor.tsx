@@ -14,9 +14,13 @@ import type { HomepageSectionDoc } from "@/lib/db/types";
 export function SectionEditor({
   section,
   collections,
+  categories = [],
+  products = [],
 }: {
   section: HomepageSectionDoc;
   collections: { slug: string; name: string }[];
+  categories?: { slug: string; name: string }[];
+  products?: { id: string; name: string; price: number; category: string }[];
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -34,6 +38,22 @@ export function SectionEditor({
   const [body, setBody] = React.useState(typeof data.body === "string" ? data.body : "");
   const [ctaLabel, setCtaLabel] = React.useState(typeof data.ctaLabel === "string" ? data.ctaLabel : "");
   const [ctaHref, setCtaHref] = React.useState(typeof data.ctaHref === "string" ? data.ctaHref : "");
+  const [categorySlugs, setCategorySlugs] = React.useState<string[]>(
+    Array.isArray(data.categorySlugs) ? (data.categorySlugs as string[]) : []
+  );
+  const [productIds, setProductIds] = React.useState<string[]>(
+    Array.isArray(data.productIds) ? (data.productIds as string[]) : []
+  );
+  const [seeAll, setSeeAll] = React.useState(data.seeAll !== false);
+  const [productQuery, setProductQuery] = React.useState("");
+
+  const toggleCategory = (slug: string) =>
+    setCategorySlugs((current) =>
+      current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug]
+    );
+
+  const toggleProduct = (id: string) =>
+    setProductIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
 
   const submit = async () => {
     setBusy(true);
@@ -51,6 +71,9 @@ export function SectionEditor({
             ...(collectionSlug ? { collectionSlug } : {}),
             source,
             limit,
+            productIds,
+            categorySlugs,
+            seeAll,
             ...(body ? { body } : {}),
             ctaLabel,
             ctaHref,
@@ -111,6 +134,64 @@ export function SectionEditor({
             </>
           ) : null}
 
+          {section.type === "category_arches" ? (
+            <div className="space-y-2 rounded-lg border border-line/70 p-3">
+              <div className="flex items-center justify-between">
+                <Label>Categories in this row</Label>
+                <div className="flex items-center gap-2 text-[10.5px] text-ink-muted">
+                  <Switch checked={seeAll} onCheckedChange={setSeeAll} /> “See all” tile
+                </div>
+              </div>
+              <p className="text-[10.5px] text-ink-muted">
+                Nothing ticked = every category with “show on home” switched on. Ticked items appear in this order.
+              </p>
+              <div className="grid max-h-44 gap-1 overflow-y-auto sm:grid-cols-2">
+                {categories.map((category) => {
+                  const index = categorySlugs.indexOf(category.slug);
+                  return (
+                    <button
+                      key={category.slug}
+                      type="button"
+                      onClick={() => toggleCategory(category.slug)}
+                      className={
+                        "flex items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 text-left text-[11.5px] transition " +
+                        (index >= 0 ? "border-ink bg-ink/5 text-ink" : "border-line text-ink-soft hover:border-ink/40")
+                      }
+                    >
+                      <span className="truncate">{category.name}</span>
+                      {index >= 0 ? (
+                        <span className="grid size-4 shrink-0 place-items-center rounded-full bg-ink text-[9px] text-cream">
+                          {index + 1}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label>How many arches</Label>
+                  <Input
+                    type="number"
+                    min={2}
+                    max={8}
+                    value={limit}
+                    onChange={(event) => setLimit(Number(event.target.value))}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={() => setCategorySlugs([])}
+                    className="rounded-full border border-line px-3 py-2 text-[10px] uppercase tracking-wide2 text-ink-soft hover:border-ink"
+                  >
+                    Use every category
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {section.type === "product_grid" ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
@@ -119,11 +200,63 @@ export function SectionEditor({
                   <option value="bestSellers">Best sellers</option>
                   <option value="newArrivals">New arrivals</option>
                   <option value="featured">Featured products</option>
+                  <option value="handpicked">Pick products myself</option>
                 </Select>
               </div>
               <div>
                 <Label>Number of products</Label>
                 <Input type="number" min={2} max={8} value={limit} onChange={(event) => setLimit(Number(event.target.value))} />
+              </div>
+            </div>
+          ) : null}
+
+          {section.type === "product_grid" && source === "handpicked" ? (
+            <div className="space-y-2 rounded-lg border border-line/70 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <Label>Products in this block</Label>
+                <span className="text-[10.5px] text-ink-muted">{productIds.length} picked</span>
+              </div>
+              <Input
+                placeholder="Search products…"
+                value={productQuery}
+                onChange={(event) => setProductQuery(event.target.value)}
+              />
+              <div className="grid max-h-52 gap-1 overflow-y-auto sm:grid-cols-2">
+                {products
+                  .filter((product) => product.name.toLowerCase().includes(productQuery.toLowerCase()))
+                  .map((product) => {
+                    const index = productIds.indexOf(product.id);
+                    return (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onClick={() => toggleProduct(product.id)}
+                        className={
+                          "flex items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 text-left text-[11.5px] transition " +
+                          (index >= 0 ? "border-ink bg-ink/5 text-ink" : "border-line text-ink-soft hover:border-ink/40")
+                        }
+                      >
+                        <span className="min-w-0 truncate">
+                          {product.name}
+                          <span className="ml-1 text-[10px] text-ink-muted">{product.category}</span>
+                        </span>
+                        {index >= 0 ? (
+                          <span className="grid size-4 shrink-0 place-items-center rounded-full bg-ink text-[9px] text-cream">
+                            {index + 1}
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setProductIds([])}
+                  className="rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-wide2 text-ink-soft hover:border-ink"
+                >
+                  Clear picks
+                </button>
               </div>
             </div>
           ) : null}

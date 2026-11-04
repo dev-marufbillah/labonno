@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, Eye, EyeOff } from "lucide-react";
 import { ensureHomepageSections, getAllHomepageSections } from "@/lib/services/content";
-import { getCollections } from "@/lib/services/catalog";
+import { getCategories, getCollections } from "@/lib/services/catalog";
+import { listProductsForPicker } from "@/lib/services/products";
 import { AdminPageTitle, Panel } from "@/components/admin/ui";
 import { ActionButton } from "@/components/admin/action-button";
 import { SectionEditor } from "@/components/admin/section-editor";
@@ -15,13 +16,18 @@ export const metadata: Metadata = { title: "Homepage builder" };
 
 export default async function AdminHomepagePage() {
   await ensureHomepageSections();
-  const [sections, collections] = await Promise.all([getAllHomepageSections(), getCollections({ includeHidden: true })]);
+  const [sections, collections, categories, products] = await Promise.all([
+    getAllHomepageSections(),
+    getCollections({ includeHidden: true }),
+    getCategories(),
+    listProductsForPicker(),
+  ]);
 
   return (
     <div>
       <AdminPageTitle
         title="Homepage builder"
-        description="Show, hide, reorder and edit every section of the storefront homepage."
+        description="Show, hide, reorder and edit every section — pick which categories fill the arch row and which products sit in each grid."
         action={
           <Link href="/" className="rounded-full border border-line px-5 py-2.5 text-[10px] uppercase tracking-label text-ink hover:border-ink">
             Preview homepage
@@ -65,6 +71,8 @@ export default async function AdminHomepagePage() {
                 <SectionEditor
                   section={section}
                   collections={collections.map((collection) => ({ slug: collection.slug, name: collection.name }))}
+                  categories={categories.map((category) => ({ slug: category.slug, name: category.name }))}
+                  products={products}
                 />
               </div>
             </li>

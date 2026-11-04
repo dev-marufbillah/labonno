@@ -205,3 +205,25 @@ export const listProducts = cachedRead("product-list", TTL.products, read_listPr
 export const getProductBySlug = cachedRead("product-by-slug", TTL.products, read_getProductBySlug);
 export const getHomepageProducts = cachedRead("homepage-products", TTL.products, read_getHomepageProducts);
 export const getProductFacets = cachedRead("product-facets", TTL.products, read_getProductFacets);
+
+/**
+ * A light list for the homepage product picker in the admin panel —
+ * just enough to choose specific pieces by hand.
+ */
+export async function listProductsForPicker(): Promise<
+  { id: string; name: string; price: number; category: string; image: string }[]
+> {
+  const docs = await col<ProductDoc>("products")
+    .find({ status: "published" })
+    .sort({ createdAt: -1 })
+    .limit(200)
+    .toArray();
+
+  return docs.map((product) => ({
+    id: String(product._id),
+    name: product.name,
+    price: product.salePrice ?? product.price,
+    category: product.category,
+    image: product.images?.[0] ?? "",
+  }));
+}

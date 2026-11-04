@@ -2,55 +2,79 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getCategories, getProductCountsByCategory } from "@/lib/services/catalog";
-import { PageHeader } from "@/components/site/page-header";
+import { getCategories } from "@/lib/services/catalog";
+import { getProductFacets } from "@/lib/services/products";
+import { Reveal } from "@/components/ui/reveal";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Categories",
-  description: "Explore LABONNO by category — saree, three piece, dresses, tops, bottoms and accessories.",
+  title: "All categories",
+  description: "Every category in the LABONNO wardrobe — sarees, three-piece sets, dresses, tops, bottoms and accessories.",
   alternates: { canonical: "/categories" },
 };
 
 export default async function CategoriesPage() {
-  const [categories, counts] = await Promise.all([getCategories(), getProductCountsByCategory()]);
+  const [categories, facets] = await Promise.all([getCategories(), getProductFacets().catch(() => ({ categories: [] as { slug: string; count: number }[] }))]);
+  const visible = categories.filter((category) => category.visible !== false);
+  const counts = new Map((facets as { categories?: { slug: string; count: number }[] }).categories?.map((item) => [item.slug, item.count]) ?? []);
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Browse"
-        title="Categories"
-        description="Six categories, each developed with a specific craft partner — from jamdani weavers in Rupganj to leather workers in Old Dhaka."
-        breadcrumbs={[{ label: "Categories" }]}
-      />
-      <section className="shell py-12">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
-            <Link key={category.slug} href={`/category/${category.slug}`} className="group block">
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-cream-200">
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-1000 ease-luxe group-hover:scale-[1.03]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/5 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-5">
-                  <p className="text-[9.5px] uppercase tracking-label text-cream/70">{category.tagline}</p>
-                  <h2 className="mt-1 font-serif text-2xl text-cream">{category.name}</h2>
-                  <p className="mt-1 text-[11.5px] text-cream/70">{counts[category.slug] ?? 0} pieces</p>
-                </div>
+    <div className="shell py-10 md:py-14">
+      <div className="text-center">
+        <p className="eyebrow">The wardrobe</p>
+        <h1 className="display-2 mt-3">Shop by category</h1>
+        <p className="mx-auto mt-3 max-w-xl text-[13px] leading-relaxed text-ink-muted">
+          Everything the studio makes, in one list. Pick a category to see the pieces, or{" "}
+          <Link href="/shop" className="text-ink underline underline-offset-4">
+            browse the full collection
+          </Link>
+          .
+        </p>
+      </div>
+
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {visible.map((category, index) => (
+          <Reveal key={category.slug} delay={(index % 3) * 70}>
+            <Link
+              href={`/category/${category.slug}`}
+              className="group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-cream-50 transition duration-300 hover:-translate-y-0.5 hover:border-gold"
+            >
+              <div className="relative aspect-[16/10] w-full bg-cream-200">
+                {category.image ? (
+                  <Image
+                    src={category.image}
+                    alt={category.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-1000 group-hover:scale-[1.03]"
+                  />
+                ) : null}
               </div>
-              <div className="mt-3 flex items-center justify-between">
-                <p className="max-w-[85%] text-[12.5px] leading-relaxed text-ink-muted">{category.description}</p>
-                <ArrowRight className="size-4 shrink-0 text-ink-muted transition-transform group-hover:translate-x-1" strokeWidth={1.4} />
+              <div className="flex items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="font-serif text-lg text-ink">{category.name}</p>
+                  <p className="text-[10.5px] uppercase tracking-label text-ink-muted">
+                    {counts.get(category.slug) ?? 0} pieces
+                  </p>
+                </div>
+                <ArrowRight className="size-4 -translate-x-1 text-gold-dark opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" strokeWidth={1.5} />
               </div>
             </Link>
-          ))}
-        </div>
-      </section>
-    </>
+          </Reveal>
+        ))}
+
+        <Link
+          href="/shop"
+          className="group flex min-h-[180px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gold/60 bg-gradient-to-br from-cream-100 to-cream-50 p-6 text-center transition hover:border-gold"
+        >
+          <span className="grid size-12 place-items-center rounded-full border border-gold/60 text-gold-dark transition group-hover:scale-110">
+            <ArrowRight className="size-5" strokeWidth={1.4} />
+          </span>
+          <p className="font-serif text-lg text-ink">Shop everything</p>
+          <p className="text-[11px] uppercase tracking-label text-ink-muted">All pieces in one grid</p>
+        </Link>
+      </div>
+    </div>
   );
 }
