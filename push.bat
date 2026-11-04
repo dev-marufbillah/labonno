@@ -67,7 +67,7 @@ if errorlevel 1 (
 )
 
 echo - Pushing...
-git push -u origin main
+git push -u origin HEAD
 if errorlevel 1 goto :failed
 
 echo.
@@ -84,7 +84,7 @@ echo   1^) Password diye push hoy na - GitHub token chay.
 echo      GitHub ^> Settings ^> Developer settings ^> Personal access tokens ^> Tokens ^(classic^)
 echo      ^> Generate new token ^> scope e "repo" tick ^> Generate ^> token copy kore
 echo      password er jaygay paste korun.
-echo   2^) Repo te age thekei README thakle:  git pull --rebase origin main   tarpor abar chalan.
+echo   2^) Repo te age thekei README thakle:  git pull --rebase origin HEAD   tarpor abar chalan.
 echo   3^) Link bhul hole:  git remote set-url origin ^<thik link^>
 echo.
 pause

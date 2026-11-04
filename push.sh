@@ -59,7 +59,7 @@ fi
 
 # ---- 5) push ---------------------------------------------------------------
 say "• push হচ্ছে → $BRANCH"
-if git push -u origin "$BRANCH"; then
+if git push -u origin HEAD; then
   say ""
   say "✔ হয়ে গেছে! আপনার কোড GitHub-এ আছে।"
   say "  খুলে দেখুন: $REMOTE"
