@@ -28,15 +28,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  let [sections, banners, categories, collections, products, settings, coupons] = await Promise.all([
-    getHomepageSections(),
-    getHeroBanners(),
-    getCategories(),
-    getCollections(),
-    getHomepageProducts(),
-    getSiteSettings(),
-    listActiveCoupons(3),
-  ]);
+  const [initialSections, banners, categories, collections, products, settings, coupons] =
+    await Promise.all([
+      getHomepageSections(),
+      getHeroBanners(),
+      getCategories(),
+      getCollections(),
+      getHomepageProducts(),
+      getSiteSettings(),
+      listActiveCoupons(3),
+    ]);
+  let sections = initialSections;
 
   /**
    * A database with no sections used to render "The homepage is being styled" — which
