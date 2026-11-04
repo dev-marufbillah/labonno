@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Loader2, Plus, ShieldCheck, X } from "lucide-react";
 import { Input, Label, FieldHint } from "@/components/ui/input";
 import { saveSettings } from "@/lib/actions/content";
-import { DEFAULT_OWNER_EMAILS } from "@/lib/auth/owners";
+import { DEFAULT_OWNER_EMAILS } from "@/lib/auth/owner-emails";
 
 /**
  * Owner addresses. Any account with one of these emails keeps full studio access —

@@ -1,4 +1,7 @@
 import { col } from "@/lib/db/mongo";
+import { DEFAULT_OWNER_EMAILS, normaliseEmail, staticOwnerEmails } from "@/lib/auth/owner-emails";
+
+export { DEFAULT_OWNER_EMAILS, normaliseEmail, staticOwnerEmails };
 
 /**
  * The people who own the studio.
@@ -14,24 +17,6 @@ import { col } from "@/lib/db/mongo";
  * Sign-up with an owner address is created straight as super admin, and an account
  * that already exists as a customer is promoted the next time it opens the panel.
  */
-export const DEFAULT_OWNER_EMAILS = ["marufsalauddioffical@gmail.com"];
-
-export function normaliseEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
-function parseList(raw: string | undefined): string[] {
-  return (raw ?? "")
-    .split(/[,\s;]+/)
-    .map(normaliseEmail)
-    .filter((value) => value.includes("@"));
-}
-
-/** Env + compiled defaults only — safe to call anywhere, no database access. */
-export function staticOwnerEmails(): string[] {
-  return [...new Set([...DEFAULT_OWNER_EMAILS, ...parseList(process.env.OWNER_EMAILS)])];
-}
-
 /** Every owner address, including the ones stored in the site settings. */
 export async function ownerEmails(): Promise<string[]> {
   const emails = new Set(staticOwnerEmails());
