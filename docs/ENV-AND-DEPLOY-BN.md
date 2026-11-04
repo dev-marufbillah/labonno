@@ -9,7 +9,7 @@
 
 | সার্ভিস | কী লাগবে | কোথা থেকে | না দিলে কী হয় |
 |---|---|---|---|
-| **MongoDB** | `MONGODB_URI` (Atlas লিংক) | [cloud.mongodb.com](https://cloud.mongodb.com) → Connect → Drivers | সাইট চলবেই না |
+| **MongoDB** | `MONGODB_URI` (Atlas লিংক) — ⚠️ হোস্ট ৩টা হলে scheme হবে `mongodb://`, একটাই হলে `mongodb+srv://` | [cloud.mongodb.com](https://cloud.mongodb.com) → Connect → Drivers | সাইট চলবেই না |
 | **Login secret** | `BETTER_AUTH_SECRET` | `npm run setup` নিজেই বানায় (রোটেট: `npm run setup -- --force`) | লগইন কাজ করবে না |
 | **Cloudinary** | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | [console.cloudinary.com](https://console.cloudinary.com/settings/api-keys) → Settings → API Keys | ছবি লোকাল `public/uploads`-এ জমা হবে (শুধু ডেভে) |
 | **Resend (ইমেইল)** | `RESEND_API_KEY`, `EMAIL_FROM` | [resend.com/api-keys](https://resend.com/api-keys) → এরপর [resend.com/domains](https://resend.com/domains) এ ডোমেইন verify | অর্ডার হবে, ইমেইল যাবে না |
@@ -18,6 +18,10 @@
 | **কার্ড** | `SSLCOMMERZ_STORE_ID`, `SSLCOMMERZ_STORE_PASSWORD` | [developer.sslcommerz.com](https://developer.sslcommerz.com) | কার্ড অপশন লুকানো থাকবে |
 | **Google লগইন** | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials) → OAuth client → Web → redirect: `https://আপনার-ডোমেইন/api/auth/callback/google` | বাটন দেখাবে না |
 | **Analytics** | `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_META_PIXEL_ID` | GA4 / Meta Events Manager | কিছুই লোড হবে না |
+
+> **সবচেয়ে সাধারণ ভুল:** Atlas থেকে কপি করা তিন-হোস্টের লিংকে `mongodb+srv://` রাখা।
+> এতে সাইট ব্যাকএন্ড থেকে সাথে সাথেই ব্যর্থ হয় (`mongodb+srv URI cannot have multiple service names`)।
+> `npm run check:env` আর `npm run doctor` এখন এই ভুলটা ধরে ঠিক করা লিংকটাই দেখিয়ে দেয়।
 
 ## ২) নিজের চোখে দেখুন কোনটা চালু
 

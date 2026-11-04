@@ -12,6 +12,7 @@ import "./load-env";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { mongoClient } from "../lib/db/mongo";
+import { mongoUriProblem, suggestMongoUriFix } from "../lib/config/mongo-uri";
 import { seedAccountSpecs } from "./lib/accounts";
 
 const problems: string[] = [];
@@ -60,6 +61,13 @@ async function main() {
   // ----------------------------------------------------------------- database
   console.log("\n2. Database");
   let db;
+  const rawUriProblem = mongoUriProblem(process.env.MONGODB_URI);
+  if (rawUriProblem) {
+    bad(rawUriProblem);
+    const fixed = process.env.MONGODB_URI ? suggestMongoUriFix(process.env.MONGODB_URI) : null;
+    if (fixed) bad("paste this into .env.local instead", fixed);
+    return report();
+  }
   try {
     const started = Date.now();
     await mongoClient.connect();

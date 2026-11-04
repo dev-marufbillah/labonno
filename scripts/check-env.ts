@@ -26,8 +26,14 @@ async function main() {
 
   console.log(`\n${on} of ${list.length} services connected.`);
 
+  const { mongoUriProblem, suggestMongoUriFix } = await import("../lib/config/mongo-uri");
   const problems: string[] = [];
-  if (!process.env.MONGODB_URI) problems.push("MONGODB_URI is empty — nothing will load. Run: npm run setup");
+  const uriProblem = mongoUriProblem(process.env.MONGODB_URI);
+  if (uriProblem) {
+    problems.push(uriProblem);
+    const fixed = process.env.MONGODB_URI ? suggestMongoUriFix(process.env.MONGODB_URI) : null;
+    if (fixed) problems.push(`Use this instead → ${fixed}`);
+  }
   if (!process.env.BETTER_AUTH_SECRET) problems.push("BETTER_AUTH_SECRET is empty — logins cannot be signed.");
   if (process.env.BETTER_AUTH_SECRET && process.env.BETTER_AUTH_SECRET.length < 24) {
     problems.push("BETTER_AUTH_SECRET looks short — regenerate it (npm run setup gives a fresh one).");
