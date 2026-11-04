@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCurrentUser } from "@/lib/auth/server";
+import { requireCustomer } from "@/lib/auth/server";
 import { getWishlistProducts } from "@/lib/services/wishlist";
 import { toCardData } from "@/lib/utils/product-card";
 import { PageHeader } from "@/components/site/page-header";
@@ -14,15 +14,15 @@ export const metadata: Metadata = {
 };
 
 export default async function WishlistPage() {
-  const user = await getCurrentUser();
-  const products = user ? await getWishlistProducts(user.id) : [];
+  const user = await requireCustomer("/wishlist");
+  const products = await getWishlistProducts(user.id);
 
   return (
     <>
       <PageHeader
         eyebrow="Saved for later"
         title="Wishlist"
-        description={user ? "Saved to your account. We will let you know if a piece is running low." : "Your saved pieces. Sign in to keep them across devices."}
+        description="Saved to your account. We will let you know if a piece is running low."
         breadcrumbs={[{ label: "Wishlist" }]}
       />
       <WishlistView initialProducts={products.map(toCardData)} />

@@ -207,8 +207,8 @@ export async function saveSettings(patch: SettingsPatch): Promise<ActionState> {
   try {
     const actor = await requireActor();
     // Deep-merge each provided group over the stored settings.
-    const { getSiteSettings } = await import("@/lib/services/settings");
-    const current = await getSiteSettings();
+    const { readSiteSettings } = await import("@/lib/services/settings");
+    const current = await readSiteSettings();
     const merged = { ...current, ...patch } as SiteSettingsDoc;
     for (const key of Object.keys(patch) as (keyof SettingsPatch)[]) {
       const value = patch[key];

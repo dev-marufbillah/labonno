@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth/server";
 import { ProfileForm } from "@/components/site/profile-form";
+import { PasswordForm } from "@/components/site/password-form";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function ProfilePage() {
         <p className="mt-1 text-[13px] text-ink-muted">Keep your details up to date so we can reach you about orders.</p>
       </div>
       <ProfileForm name={user.name} email={user.email} phone={user.phone ?? ""} role={user.role} />
+      <PasswordForm />
     </div>
   );
 }

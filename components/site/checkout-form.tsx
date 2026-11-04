@@ -9,25 +9,42 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Check, Loader2, Lock } from "lucide-react";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
-import { DISTRICTS, PAYMENT_METHOD_LABELS } from "@/lib/config/site";
+import { DISTRICTS } from "@/lib/config/site";
 import { Input, Label, Select, Textarea, FieldError, FieldHint } from "@/components/ui/input";
 import { formatMoney } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useCommerce } from "./commerce-provider";
 import { EmptyState } from "./empty-state";
-import type { SiteSettingsDoc } from "@/lib/db/types";
+import type { AddressDoc, SiteSettingsDoc } from "@/lib/db/types";
 
 interface DistrictCharge {
   district: string;
   charge: number;
 }
 
+export interface CheckoutMethodView {
+  key: string;
+  label: string;
+  description: string;
+  instructions: string;
+  number: string;
+  accountType: string;
+  requiresReference: boolean;
+  gateway: "bkash" | "sslcommerz" | null;
+  badge: string;
+}
+
 export function CheckoutForm({
   settings,
   prefill,
+  address = null,
+  methods,
 }: {
   settings: SiteSettingsDoc;
   prefill: { name: string; email: string; phone: string } | null;
+  address?: AddressDoc | null;
+  /** Whatever the owner has switched on in Admin → Settings → Payment methods. */
+  methods: CheckoutMethodView[];
 }) {
   const router = useRouter();
   const { cart, cartReady, subtotal, clearCart } = useCommerce();
@@ -35,9 +52,12 @@ export function CheckoutForm({
   const [coupon, setCoupon] = React.useState<{ code: string; discount: number } | null>(null);
   const [couponBusy, setCouponBusy] = React.useState(false);
 
-  const enabledMethods = (["cod", "bkash", "nagad", "sslcommerz"] as const).filter(
-    (method) => settings.payments[method]?.enabled
-  );
+  // A saved address only fills the form when its district is one we ship to.
+  const savedDistrict = (DISTRICTS as readonly string[]).includes(address?.district ?? "")
+    ? (address!.district as (typeof DISTRICTS)[number])
+    : ("Dhaka" as (typeof DISTRICTS)[number]);
+
+  const enabledMethods = methods;
 
   const {
     register,
@@ -49,9 +69,15 @@ export function CheckoutForm({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       customer: { name: prefill?.name ?? "", email: prefill?.email ?? "", phone: prefill?.phone ?? "" },
-      shippingAddress: { address: "", area: "", district: "Dhaka", postcode: "", note: "" },
+      shippingAddress: {
+        address: address?.address ?? "",
+        area: address?.area ?? "",
+        district: savedDistrict,
+        postcode: address?.postcode ?? "",
+        note: "",
+      },
       items: [],
-      paymentMethod: enabledMethods[0] ?? "cod",
+      paymentMethod: enabledMethods[0]?.key ?? "cod",
       couponCode: null,
       paymentReference: null,
     },
@@ -222,41 +248,53 @@ export function CheckoutForm({
           <div className="mt-4 space-y-2.5">
             {enabledMethods.map((method) => (
               <label
-                key={method}
+                key={method.key}
                 className={cn(
                   "flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition",
-                  paymentMethod === method ? "border-ink bg-cream-50" : "border-line hover:border-ink/40"
+                  paymentMethod === method.key ? "border-ink bg-cream-50" : "border-line hover:border-ink/40"
                 )}
               >
                 <input
                   type="radio"
-                  value={method}
+                  value={method.key}
                   {...register("paymentMethod")}
                   className="mt-1 size-3.5 accent-[#1C1B18]"
                 />
                 <span className="flex-1">
                   <span className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] font-medium text-ink">{PAYMENT_METHOD_LABELS[method]}</span>
-                    {method === "cod" ? <span className="text-[10px] uppercase tracking-wide2 text-ink-muted">Most popular</span> : null}
+                    <span className="text-[13px] font-medium text-ink">{method.label}</span>
+                    {method.badge ? (
+                      <span className="text-[10px] uppercase tracking-wide2 text-ink-muted">{method.badge}</span>
+                    ) : null}
                   </span>
-                  <span className="mt-1 block text-[11.5px] leading-relaxed text-ink-muted">
-                    {settings.payments[method]?.instructions}
-                  </span>
-                  {method === "bkash" || method === "nagad" ? (
+                  {method.description ? (
+                    <span className="mt-1 block text-[11.5px] leading-relaxed text-ink-muted">{method.description}</span>
+                  ) : null}
+                  {method.instructions ? (
+                    <span className="mt-1 block text-[11.5px] leading-relaxed text-ink-soft">{method.instructions}</span>
+                  ) : null}
+                  {method.number ? (
                     <span className="mt-1 block text-[11.5px] text-ink">
-                      Send to <strong className="font-medium">{settings.payments[method].number}</strong>
+                      Send to <strong className="font-medium">{method.number}</strong>
+                      {method.accountType ? <span className="text-ink-muted"> · {method.accountType}</span> : null}
+                    </span>
+                  ) : null}
+                  {method.gateway ? (
+                    <span className="mt-1 block text-[11px] text-ink-muted">
+                      You will be redirected to {method.label} to pay securely, then brought back here.
                     </span>
                   ) : null}
 
-                  {paymentMethod === method && (method === "bkash" || method === "nagad") ? (
+                  {paymentMethod === method.key && method.requiresReference ? (
                     <span className="mt-3 grid gap-3 sm:grid-cols-2">
                       <span>
-                        <Label htmlFor={`${method}-sender`}>Your {PAYMENT_METHOD_LABELS[method]} number</Label>
-                        <Input id={`${method}-sender`} inputMode="tel" placeholder="01712345678" {...register("paymentReference.senderNumber")} />
+                        <Label htmlFor={`${method.key}-sender`}>The number you paid from</Label>
+                        <Input id={`${method.key}-sender`} inputMode="tel" placeholder="01712345678" {...register("paymentReference.senderNumber")} />
+                        <FieldError message={errors.paymentReference?.senderNumber?.message} />
                       </span>
                       <span>
-                        <Label htmlFor={`${method}-trx`}>Transaction ID</Label>
-                        <Input id={`${method}-trx`} placeholder="e.g. 9F2K1LQ7XZ" {...register("paymentReference.transactionId")} />
+                        <Label htmlFor={`${method.key}-trx`}>Transaction ID</Label>
+                        <Input id={`${method.key}-trx`} placeholder="e.g. 9F2K1LQ7XZ" {...register("paymentReference.transactionId")} />
                         <FieldError message={errors.paymentReference?.transactionId?.message} />
                       </span>
                     </span>

@@ -1,13 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { decideRoute } from "@/lib/auth/routes";
 
 /**
- * Edge middleware.
+ * Edge middleware — the cheapest possible first gate.
  *
- * This is a cheap first gate only: it looks for the Better Auth session cookie and
- * bounces anonymous visitors to the right login screen before a server component
- * ever boots. It deliberately does NOT decode or trust the cookie payload — the
- * authoritative check (role included) happens in `lib/auth/server.ts` inside the
- * layouts of /admin and /account, and again in every server action.
+ * It only looks for the Better Auth session cookie and bounces anonymous visitors to
+ * the right login screen, remembering where they were going (`?next=`). It deliberately
+ * does NOT trust the cookie payload: the authoritative check (role included) runs again
+ * in `lib/auth/server.ts` inside the /admin and /account layouts and in every server
+ * action / API route, so a forged cookie still gets nowhere.
+ *
+ * The rules themselves live in `lib/auth/routes.ts` as a pure function — see
+ * `npm run check:routes` — so this file stays trivial.
  */
 const SESSION_COOKIES = ["labonno.session_token", "__Secure-labonno.session_token"];
 
@@ -17,23 +21,12 @@ function hasSessionCookie(request: NextRequest) {
 
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const signedIn = hasSessionCookie(request);
+  const decision = decideRoute({ pathname, search, signedIn: hasSessionCookie(request) });
 
-  const isAdminArea = pathname === "/admin" || pathname.startsWith("/admin/");
-  const isAdminLogin = pathname === "/admin/login";
-  const isAuthScreen = pathname === "/login" || pathname === "/register";
-
-  if (isAdminArea && !isAdminLogin && !signedIn) {
+  if (decision.action === "redirect") {
     const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
-    url.search = pathname === "/admin" || pathname === "/admin/dashboard" ? "" : `?next=${encodeURIComponent(pathname + search)}`;
-    return NextResponse.redirect(url);
-  }
-
-  if (isAuthScreen && signedIn) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/account";
-    url.search = "";
+    url.pathname = decision.pathname;
+    url.search = decision.search;
     return NextResponse.redirect(url);
   }
 
@@ -42,5 +35,16 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // Keep the matcher tight so static assets, images and API handlers are untouched.
-  matcher: ["/admin", "/admin/((?!login).*)", "/account/:path*", "/login", "/register"],
+  matcher: [
+    "/admin",
+    "/admin/((?!login).*)",
+    "/account",
+    "/account/:path*",
+    "/cart",
+    "/checkout",
+    "/wishlist",
+    "/order-success",
+    "/login",
+    "/register",
+  ],
 };

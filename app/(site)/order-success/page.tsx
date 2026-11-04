@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { CheckCircle2, Package, Truck, Home } from "lucide-react";
 import { getOrderByNumber } from "@/lib/services/orders";
-import { getCurrentUser } from "@/lib/auth/server";
+import { requireCustomer } from "@/lib/auth/server";
 import { formatMoney, formatDate } from "@/lib/utils/format";
 import { PAYMENT_METHOD_LABELS, ORDER_STATUS_LABELS } from "@/lib/config/site";
 import { EmptyState } from "@/components/site/empty-state";
@@ -25,10 +25,11 @@ export default async function OrderSuccessPage({
   const { order: orderNumber } = await searchParams;
   const cookieStore = await cookies();
   const cookieOrder = cookieStore.get("labonno_last_order")?.value;
-  const user = await getCurrentUser();
+  // Only the customer who owns the order (or the browser that just placed it) can see it.
+  const user = await requireCustomer(`/account/orders`);
 
   const order = orderNumber ? await getOrderByNumber(orderNumber) : null;
-  const authorised = order && (order.orderNumber === cookieOrder || (user && order.userId === user.id));
+  const authorised = order && (order.orderNumber === cookieOrder || order.userId === user.id);
 
   if (!order || !authorised) {
     return (

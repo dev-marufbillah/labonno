@@ -11,7 +11,7 @@ import { discountPercent, effectivePrice, formatMoney } from "@/lib/utils/format
 
 export function ProductPurchase({ product }: { product: ProductCardData }) {
   const router = useRouter();
-  const { addToCart, isWishlisted, toggleWishlist } = useCommerce();
+  const { addToCart, isWishlisted, toggleWishlist, signedIn } = useCommerce();
   const colors = product.colors?.length ? product.colors : [{ name: "Natural", hex: "#D8C9B4" }];
   const sizes = product.sizes?.length ? product.sizes : ["One size"];
   const [color, setColor] = React.useState(colors[0].name);
@@ -39,7 +39,7 @@ export function ProductPurchase({ product }: { product: ProductCardData }) {
       quantity,
       maxStock: stock,
     });
-    if (buyNow) router.push("/checkout");
+    if (buyNow && signedIn) router.push("/checkout");
   };
 
   return (
@@ -139,7 +139,7 @@ export function ProductPurchase({ product }: { product: ProductCardData }) {
           disabled={stock <= 0}
           className="flex-1 rounded-full bg-ink px-6 py-3 text-[10px] uppercase tracking-label text-cream transition hover:bg-ink-soft disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {stock > 0 ? "Add to bag" : "Sold out"}
+          {stock <= 0 ? "Sold out" : signedIn ? "Add to bag" : "Sign in to add"}
         </button>
         <button
           type="button"
@@ -160,6 +160,26 @@ export function ProductPurchase({ product }: { product: ProductCardData }) {
       >
         Buy it now
       </button>
+
+      {/* Phone only: the decision stays within thumb reach while scrolling. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-cream-50/95 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.7rem)] pt-2.5 backdrop-blur-md lg:hidden">
+        <div className="flex items-center gap-3">
+          <div className="min-w-0">
+            <p className="font-serif text-[17px] leading-none">{formatMoney(price)}</p>
+            <p className="mt-1 truncate text-[9.5px] uppercase tracking-wide2 text-ink-muted">
+              {size} · {color}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onAdd(false)}
+            disabled={stock <= 0}
+            className="tap-target ml-auto shrink-0 rounded-full bg-ink px-6 py-3 text-[10px] uppercase tracking-label text-cream transition active:scale-[0.98] disabled:opacity-40"
+          >
+            {stock <= 0 ? "Sold out" : signedIn ? "Add to bag" : "Sign in to add"}
+          </button>
+        </div>
+      </div>
 
       <ul className="grid gap-3 border-t border-line pt-5 text-[11.5px] text-ink-muted sm:grid-cols-3">
         <li className="flex items-start gap-2">

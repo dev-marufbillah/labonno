@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Role } from "@/lib/db/types";
 import { createAuth } from "./core";
+import { isOwnerEmail } from "./owners";
+import { col } from "@/lib/db/mongo";
 
 export const auth = createAuth();
 
@@ -29,12 +31,30 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const session = await getSession();
   if (!session?.user) return null;
   const user = session.user as typeof session.user & { role?: string; phone?: string };
+  let role = (user.role as Role) || "customer";
+
+  /**
+   * Owner addresses always keep access: if the founder signed up before being
+   * listed (or the role was changed by mistake) the next panel visit puts the
+   * role back to super admin, permanently.
+   */
+  if (!isAdminRole(role) && (await isOwnerEmail(user.email))) {
+    role = "super_admin";
+    try {
+      await col("user").updateOne({ email: user.email.toLowerCase() } as never, {
+        $set: { role, updatedAt: new Date() },
+      });
+    } catch {
+      /* promotion is best-effort — the session already has access */
+    }
+  }
+
   return {
     id: user.id,
     name: user.name,
     email: user.email,
     image: user.image ?? null,
-    role: (user.role as Role) || "customer",
+    role,
     phone: user.phone ?? null,
   };
 });
@@ -42,6 +62,17 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
 export async function requireUser(redirectTo = "/login") {
   const user = await getCurrentUser();
   if (!user) redirect(redirectTo);
+  return user;
+}
+
+/**
+ * Page guard for anything that needs a signed-in visitor (bag, checkout, wishlist…).
+ * Sends anonymous visitors to the login screen and remembers where they were headed,
+ * so `?next=` brings them straight back after they sign in or create an account.
+ */
+export async function requireCustomer(nextPath = "/account") {
+  const user = await getCurrentUser();
+  if (!user) redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   return user;
 }
 

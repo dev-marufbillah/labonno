@@ -1,34 +1,62 @@
 import type { Metadata } from "next";
-import { getHomepageSections, getHeroBanners } from "@/lib/services/content";
+import { ensureHomepageSections, getHomepageSections, getHeroBanners } from "@/lib/services/content";
 import { getCategories, getCollections } from "@/lib/services/catalog";
 import { getHomepageProducts } from "@/lib/services/products";
 import { getSiteSettings } from "@/lib/services/settings";
+import { formatMoney } from "@/lib/utils/format";
+import { listActiveCoupons } from "@/lib/services/coupons";
 import { HeroCarousel, type HeroSlide } from "@/components/site/home/hero";
+import { Reveal } from "@/components/ui/reveal";
 import { CategoryArches } from "@/components/site/home/category-arches";
 import { FeaturedCollection } from "@/components/site/home/featured-collection";
 import { ProductGridSection } from "@/components/site/home/product-grid-section";
 import { NewsletterPanel } from "@/components/site/home/newsletter-panel";
 import { EditorialSection } from "@/components/site/home/editorial";
+import { OfferStrip, type OfferCard } from "@/components/site/home/offers";
 import type { HomepageSectionDoc } from "@/lib/db/types";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: { absolute: "LABONNO — The Art of Elegance" },
-  description:
-    "Discover handcrafted sarees, three-piece sets, dresses and accessories from LABONNO, a Dhaka-based luxury fashion house. Made in limited runs.",
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const brand = settings.general.brandName;
+  return {
+    title: { absolute: `${brand} — ${settings.general.tagline}` },
+    description: settings.seo.defaultDescription,
+    alternates: { canonical: "/" },
+  };
+}
 
 export default async function HomePage() {
-  const [sections, banners, categories, collections, products, settings] = await Promise.all([
+  let [sections, banners, categories, collections, products, settings, coupons] = await Promise.all([
     getHomepageSections(),
     getHeroBanners(),
     getCategories(),
     getCollections(),
     getHomepageProducts(),
     getSiteSettings(),
+    listActiveCoupons(3),
   ]);
+
+  /**
+   * A database with no sections used to render "The homepage is being styled" — which
+   * looks like a broken site. Now the shipped sections are put back and the page is
+   * rendered normally; the owner can hide or reorder them from Admin → Homepage.
+   */
+  if (sections.length === 0) {
+    const added = await ensureHomepageSections();
+    if (added > 0) sections = await getHomepageSections();
+  }
+
+  const offers: OfferCard[] = coupons.map((coupon) => ({
+    code: coupon.code,
+    description: coupon.description || "A quiet thank-you on your first order.",
+    label:
+      coupon.type === "percentage"
+        ? `${coupon.value}% off`
+        : `${formatMoney(coupon.value)} off`,
+    minSubtotal: coupon.minSubtotal ?? 0,
+  }));
 
   const visibleCategories = categories.filter((c) => c.showOnHome);
 
@@ -110,6 +138,16 @@ export default async function HomePage() {
         );
       }
 
+      case "offers":
+        return (
+          <OfferStrip
+            key={section.key}
+            offers={offers}
+            title={section.title || "Codes of the season"}
+            subtitle={section.subtitle}
+          />
+        );
+
       case "editorial":
         return (
           <EditorialSection
@@ -142,11 +180,20 @@ export default async function HomePage() {
 
   return (
     <div className="pb-4">
-      {sections.map(renderSection)}
+      {sections.map((section) =>
+        section.type === "hero" ? (
+          renderSection(section)
+        ) : (
+          <Reveal key={`reveal-${section.key}`}>{renderSection(section)}</Reveal>
+        )
+      )}
       {sections.length === 0 ? (
         <div className="shell py-24 text-center">
           <h1 className="display-2">LABONNO</h1>
-          <p className="mt-3 text-ink-muted">The homepage is being styled. Please check back shortly.</p>
+          <p className="mt-3 text-ink-muted">
+            The homepage has no sections yet. Open <span className="text-ink">Admin → Homepage</span> (or run{" "}
+            <code className="rounded bg-cream-200/70 px-1.5 py-0.5 text-[12px]">npm run seed</code>) and they will appear here.
+          </p>
         </div>
       ) : null}
     </div>

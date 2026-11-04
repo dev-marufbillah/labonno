@@ -100,7 +100,7 @@ low-stock alerts and recent orders.
 | Screen | What it controls |
 | ------ | ---------------- |
 | General | Brand name, tagline, contact details, address, currency, social handles |
-| Appearance | Announcement bar, accent colour and other presentation switches |
+| Appearance | Logo image, favicon and the accent colour. The logo replaces the typed wordmark in the header and footer, the favicon drives the browser tab, and the accent colour is applied site-wide to buttons, links and highlights |
 | Payments | Which methods are offered at checkout, bKash/Nagad merchant numbers, SSLCommerz on/off. A method switched off here disappears from checkout entirely |
 | Shipping | Delivery charges inside/outside Dhaka, per-district zones, free-shipping threshold, delivery estimate, return window |
 | Admin users | Promote or demote staff (`customer` / `admin` / `super_admin`). Super admins only, and never their own account |

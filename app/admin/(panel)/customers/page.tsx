@@ -5,6 +5,8 @@ import { AdminPageTitle, AdminSearch, Panel, TableEmpty } from "@/components/adm
 import { Table, THead, TH, TD, TR } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatMoney } from "@/lib/utils/format";
+import { requireAdmin } from "@/lib/auth/server";
+import { DeleteStaffButton } from "@/components/admin/staff-form";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,7 @@ export const metadata: Metadata = { title: "Customers" };
 
 export default async function AdminCustomersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const params = await searchParams;
+  const actor = await requireAdmin();
   const customers = await listCustomers(params.q);
 
   return (
@@ -51,9 +54,14 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
                 <TD>{formatMoney(customer.spent)}</TD>
                 <TD>{formatDate(customer.createdAt)}</TD>
                 <TD className="text-right">
-                  <Link href={`/admin/customers/${customer.id}`} className="rounded-full border border-line px-3 py-2 text-[10px] uppercase tracking-wide2 hover:border-ink">
-                    View
-                  </Link>
+                  <div className="flex items-center justify-end gap-3">
+                    <Link href={`/admin/customers/${customer.id}`} className="rounded-full border border-line px-3 py-2 text-[10px] uppercase tracking-wide2 hover:border-ink">
+                      View
+                    </Link>
+                    {actor.role === "super_admin" ? (
+                      <DeleteStaffButton userId={customer.id} email={customer.email} />
+                    ) : null}
+                  </div>
                 </TD>
               </TR>
             ))}

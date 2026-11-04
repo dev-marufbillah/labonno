@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import { col } from "@/lib/db/mongo";
 import { reviewSchema } from "@/lib/validations";
 import { getProductById } from "@/lib/services/products";
-import { getCurrentUser } from "@/lib/auth/server";
+import { requireApiUser } from "@/lib/auth/guards";
 import type { ReviewDoc } from "@/lib/db/types";
 
 export async function POST(request: Request) {
   try {
+    const { user, error } = await requireApiUser("/account/orders");
+    if (error || !user) return error!;
+
     const body = await request.json();
     const parsed = reviewSchema.safeParse(body);
     if (!parsed.success) {
@@ -15,13 +18,12 @@ export async function POST(request: Request) {
     const product = await getProductById(parsed.data.productId);
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
-    const user = await getCurrentUser();
     const review: ReviewDoc = {
       productId: parsed.data.productId,
       productSlug: product.slug,
       productName: product.name,
-      userId: user?.id ?? null,
-      author: parsed.data.author,
+      userId: user.id,
+      author: parsed.data.author || user.name,
       rating: parsed.data.rating,
       title: parsed.data.title,
       body: parsed.data.body,

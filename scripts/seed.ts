@@ -5,6 +5,7 @@
  * sample orders so every dashboard widget has real data to read.
  */
 import "./load-env";
+import { ensureSeedAccounts, seedAccountSpecs } from "./lib/accounts";
 import { MongoClient, ObjectId } from "mongodb";
 import type {
   BannerDoc,
@@ -982,13 +983,24 @@ async function main() {
       updatedAt: now,
     },
     {
+      key: "offers",
+      type: "offers",
+      label: "Coupon codes",
+      title: "Codes of the season",
+      subtitle: "Tap a card to copy the code — paste it in the bag or at checkout.",
+      visible: true,
+      order: 6,
+      data: {},
+      updatedAt: now,
+    },
+    {
       key: "newsletter",
       type: "newsletter",
       label: "Newsletter",
       title: "Be a part of Labonno",
       subtitle: "Get the latest trends & exclusive offers straight from our studio.",
       visible: true,
-      order: 6,
+      order: 7,
       data: {},
       updatedAt: now,
     },
@@ -1128,44 +1140,15 @@ async function main() {
   await db.collection<CouponDoc>("coupons").insertMany(coupons);
 
   // ---------- users ----------
-  const auth = createAuth({ withNextCookies: false });
-  const accountSpecs = [
-    {
-      name: "Labonno Admin",
-      email: process.env.SEED_ADMIN_EMAIL || "admin@labonno.com",
-      password: process.env.SEED_ADMIN_PASSWORD || "Labonno@2026",
-      role: "super_admin",
-      phone: "01711000000",
-    },
-    {
-      name: "Studio Manager",
-      email: process.env.SEED_STAFF_EMAIL || "manager@labonno.com",
-      password: process.env.SEED_STAFF_PASSWORD || "Labonno@2026",
-      role: "admin",
-      phone: "01711000002",
-    },
-    {
-      name: "Nusrat Jahan",
-      email: process.env.SEED_CUSTOMER_EMAIL || "customer@labonno.com",
-      password: process.env.SEED_CUSTOMER_PASSWORD || "Labonno@2026",
-      role: "customer",
-      phone: "01812345678",
-    },
-  ];
+  const auth = createAuth({ withNextCookies: false, disableRateLimit: true });
+  const accountSpecs = seedAccountSpecs();
 
-  for (const spec of accountSpecs) {
-    try {
-      await auth.api.signUpEmail({
-        body: { name: spec.name, email: spec.email, password: spec.password, phone: spec.phone },
-      });
-    } catch (error) {
-      console.warn(`Sign-up skipped for ${spec.email}:`, (error as Error).message);
-    }
-    await db.collection("user").updateOne(
-      { email: spec.email },
-      { $set: { role: spec.role, phone: spec.phone, emailVerified: true } }
-    );
-    console.log(`Account ready: ${spec.email} (${spec.role})`);
+  // Creating accounts is the one step that must not fail silently: a catalogue with
+  // zero accounts means nobody can sign in. ensureSeedAccounts verifies each row and
+  // throws with a fixable message instead of warning and moving on.
+  const ensured = await ensureSeedAccounts(db, auth, accountSpecs);
+  for (const account of ensured) {
+    console.log(`Account ready: ${account.email} (${account.role})`);
   }
 
   const customer = await db.collection("user").findOne({ email: process.env.SEED_CUSTOMER_EMAIL || "customer@labonno.com" });

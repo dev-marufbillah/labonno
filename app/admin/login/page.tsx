@@ -40,6 +40,12 @@ export default async function AdminLoginPage() {
             <AdminLoginForm />
           </div>
         </div>
+        <p className="mt-8 text-center text-[10px] uppercase tracking-label text-cream/30">
+          Cannot sign in?{" "}
+          <a href="/api/health" className="underline decoration-cream/20 underline-offset-4 hover:text-cream/60">
+            Run diagnostics
+          </a>
+        </p>
       </div>
     </div>
   );

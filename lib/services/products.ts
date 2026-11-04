@@ -1,4 +1,5 @@
 import "server-only";
+import { cachedRead, TTL } from "./cache";
 import { type Filter, type Sort } from "mongodb";
 import { col } from "@/lib/db/mongo";
 import type { ProductDoc } from "@/lib/db/types";
@@ -74,7 +75,7 @@ function normaliseFilter(q: ProductQuery): Filter<ProductDoc> {
   return filter;
 }
 
-export async function listProducts(q: ProductQuery = {}): Promise<ProductListResult> {
+async function read_listProducts(q: ProductQuery = {}): Promise<ProductListResult> {
   const page = Math.max(1, q.page ?? 1);
   const perPage = Math.min(60, Math.max(4, q.perPage ?? 12));
   const filter = normaliseFilter(q);
@@ -115,7 +116,7 @@ export async function listProducts(q: ProductQuery = {}): Promise<ProductListRes
   };
 }
 
-export async function getProductBySlug(slug: string): Promise<ProductDoc | null> {
+async function read_getProductBySlug(slug: string): Promise<ProductDoc | null> {
   return col<ProductDoc>("products").findOne({ slug, status: "published" });
 }
 
@@ -136,7 +137,7 @@ export async function getRelatedProducts(product: ProductDoc, limit = 4): Promis
     .toArray();
 }
 
-export async function getHomepageProducts(): Promise<{
+async function read_getHomepageProducts(): Promise<{
   bestSellers: ProductDoc[];
   newArrivals: ProductDoc[];
   featured: ProductDoc[];
@@ -171,7 +172,7 @@ export async function resolveVariantPrice(productId: string, size: string, color
 }
 
 /** Facet values for the storefront filter rail, aggregated across the catalogue. */
-export async function getProductFacets(): Promise<{
+async function read_getProductFacets(): Promise<{
   sizes: string[];
   colors: { name: string; hex: string }[];
 }> {
@@ -199,3 +200,8 @@ export async function getProductFacets(): Promise<{
     colors: colorRows.map((r) => ({ name: String(r._id), hex: r.hex })),
   };
 }
+
+export const listProducts = cachedRead("product-list", TTL.products, read_listProducts);
+export const getProductBySlug = cachedRead("product-by-slug", TTL.products, read_getProductBySlug);
+export const getHomepageProducts = cachedRead("homepage-products", TTL.products, read_getHomepageProducts);
+export const getProductFacets = cachedRead("product-facets", TTL.products, read_getProductFacets);

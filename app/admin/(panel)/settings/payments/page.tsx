@@ -1,73 +1,75 @@
 import type { Metadata } from "next";
-import { getSiteSettings } from "@/lib/services/settings";
+import Link from "next/link";
 import { AdminPageTitle, Panel } from "@/components/admin/ui";
-import { SettingsForm } from "@/components/admin/settings-form";
-import { Badge } from "@/components/ui/badge";
+import { PaymentMethodsManager, type PaymentMethodView } from "@/components/admin/payment-methods-manager";
+import { listPaymentMethods } from "@/lib/services/payment-methods";
+import { isBkashConfigured } from "@/lib/payments/bkash";
+import { sslcommerzConfigured } from "@/lib/payments/sslcommerz";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Payment settings" };
+export const metadata: Metadata = { title: "Payment methods" };
 
 export default async function PaymentSettingsPage() {
-  const settings = await getSiteSettings();
-  const sslConfigured = Boolean(process.env.SSLCOMMERZ_STORE_ID && process.env.SSLCOMMERZ_STORE_PASSWORD);
+  const methods = await listPaymentMethods();
+
+  const views: PaymentMethodView[] = methods.map((method) => ({
+    id: String(method._id),
+    key: method.key,
+    label: method.label,
+    kind: method.kind,
+    enabled: method.enabled,
+    order: method.order,
+    description: method.description,
+    instructions: method.instructions,
+    number: method.number ?? "",
+    accountType: method.accountType ?? "",
+    requiresReference: method.requiresReference,
+    gateway: method.gateway ?? null,
+    badge: method.badge ?? "",
+    hasCredentials: Boolean(
+      method.config && Object.values(method.config).some((value) => typeof value === "string" && value.length > 0)
+    ),
+    sandbox: method.config?.sandbox ?? true,
+  }));
 
   return (
-    <div>
-      <AdminPageTitle title="Payment settings" description="Enable the methods shown at checkout and set verification instructions." />
-      <div className="grid gap-4 xl:grid-cols-2">
-        <SettingsForm
-          title="Cash on delivery"
-          group="payments"
-          values={{ payments: { cod: settings.payments.cod } }}
-          fields={[
-            { path: "payments.cod.enabled", label: "Enable cash on delivery", type: "toggle" },
-            { path: "payments.cod.instructions", label: "Instructions shown at checkout", type: "textarea" },
-          ]}
-        />
-        <SettingsForm
-          title="bKash"
-          group="payments"
-          values={{ payments: { bkash: settings.payments.bkash } }}
-          fields={[
-            { path: "payments.bkash.enabled", label: "Enable bKash", type: "toggle" },
-            { path: "payments.bkash.number", label: "Merchant number", type: "tel" },
-            { path: "payments.bkash.instructions", label: "Instructions", type: "textarea" },
-          ]}
-        />
-        <SettingsForm
-          title="Nagad"
-          group="payments"
-          values={{ payments: { nagad: settings.payments.nagad } }}
-          fields={[
-            { path: "payments.nagad.enabled", label: "Enable Nagad", type: "toggle" },
-            { path: "payments.nagad.number", label: "Merchant number", type: "tel" },
-            { path: "payments.nagad.instructions", label: "Instructions", type: "textarea" },
-          ]}
-        />
-        <div className="space-y-4">
-          <SettingsForm
-            title="SSLCommerz (cards)"
-            group="payments"
-            values={{ payments: { sslcommerz: settings.payments.sslcommerz } }}
-            fields={[
-              { path: "payments.sslcommerz.enabled", label: "Enable SSLCommerz", type: "toggle" },
-              { path: "payments.sslcommerz.instructions", label: "Instructions", type: "textarea" },
-            ]}
-          />
-          <Panel title="Gateway credentials">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[12px] text-ink-soft">SSLCommerz store credentials</p>
-              {sslConfigured ? <Badge tone="green">Configured</Badge> : <Badge tone="amber">Missing</Badge>}
-            </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-ink-muted">
-              Add <code>SSLCOMMERZ_STORE_ID</code> and <code>SSLCOMMERZ_STORE_PASSWORD</code> to the deployment environment.
-              Until they exist, card payments stay hidden at checkout. Successful payments are only marked paid after the
-              server validates <code>val_id</code> with SSLCommerz and the amount matches the order.
-            </p>
-          </Panel>
-        </div>
-      </div>
+    <div className="space-y-5">
+      <AdminPageTitle
+        title="Payment methods"
+        description="Add, reorder, switch off or delete any way of paying — checkout updates instantly."
+        action={
+          <Link href="/admin/orders" className="rounded-full border border-line px-5 py-2.5 text-[10px] uppercase tracking-label text-ink hover:bg-cream-200/60">
+            See orders
+          </Link>
+        }
+      />
+
+      <Panel className="p-5">
+        <PaymentMethodsManager methods={views} />
+      </Panel>
+
+      <Panel className="space-y-2 p-5 text-[11.5px] leading-relaxed text-ink-muted">
+        <p className="text-[10px] uppercase tracking-label text-ink">Gateway status</p>
+        <p>
+          bKash tokenized checkout:{" "}
+          <span className={isBkashConfigured() ? "text-emerald-700" : "text-amber-700"}>
+            {isBkashConfigured() ? "keys found — live redirect available" : "no keys yet (manual bKash still works)"}
+          </span>
+        </p>
+        <p>
+          SSLCommerz:{" "}
+          <span className={sslcommerzConfigured() ? "text-emerald-700" : "text-amber-700"}>
+            {sslcommerzConfigured() ? "keys found — card payments available" : "no keys yet"}
+          </span>
+        </p>
+        <p>
+          Add keys either in the method above or in <code className="font-mono">.env.local</code>{" "}
+          (<code className="font-mono">BKASH_APP_KEY</code>, <code className="font-mono">BKASH_APP_SECRET</code>,{" "}
+          <code className="font-mono">BKASH_USERNAME</code>, <code className="font-mono">BKASH_PASSWORD</code>,{" "}
+          <code className="font-mono">SSLCOMMERZ_STORE_ID</code>, <code className="font-mono">SSLCOMMERZ_STORE_PASSWORD</code>).
+        </p>
+      </Panel>
     </div>
   );
 }

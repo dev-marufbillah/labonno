@@ -8,10 +8,29 @@ import type { MediaDoc } from "@/lib/db/types";
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml"];
 const MAX_BYTES = 8 * 1024 * 1024;
 
-function cloudinaryConfigured() {
-  return Boolean(
-    process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
-  );
+/**
+ * Credentials can be given either as three variables
+ *   CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET
+ * or as the single URL the Cloudinary dashboard shows you
+ *   CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
+ * Both work, so pasting from the dashboard never needs rewriting.
+ */
+export function cloudinaryCredentials(): { cloudName: string; apiKey: string; apiSecret: string } | null {
+  const direct = {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME ?? "",
+    apiKey: process.env.CLOUDINARY_API_KEY ?? "",
+    apiSecret: process.env.CLOUDINARY_API_SECRET ?? "",
+  };
+  if (direct.cloudName && direct.apiKey && direct.apiSecret) return direct;
+
+  const url = process.env.CLOUDINARY_URL ?? "";
+  const match = url.match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/);
+  if (match) return { apiKey: match[1], apiSecret: match[2], cloudName: match[3] };
+  return null;
+}
+
+export function cloudinaryConfigured(): boolean {
+  return cloudinaryCredentials() !== null;
 }
 
 export interface UploadResult {
@@ -38,12 +57,13 @@ export async function uploadMedia(file: File, folder = "products"): Promise<Uplo
   let url: string;
   let publicId: string | undefined;
 
-  if (cloudinaryConfigured()) {
+  const credentials = cloudinaryCredentials();
+  if (credentials) {
     const { v2: cloudinary } = await import("cloudinary");
     cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
+      cloud_name: credentials.cloudName,
+      api_key: credentials.apiKey,
+      api_secret: credentials.apiSecret,
       secure: true,
     });
     const uploaded = await new Promise<{ secure_url: string; public_id: string; width: number; height: number; bytes: number }>(
@@ -90,6 +110,29 @@ export async function uploadMedia(file: File, folder = "products"): Promise<Uplo
   };
   await col<MediaDoc>("media").insertOne(media);
   return { ok: true, url, media };
+}
+
+/** Removes an uploaded file from Cloudinary (and the media record). */
+export async function deleteMedia(mediaId: string): Promise<{ ok: boolean; message: string }> {
+  const { ObjectId } = await import("mongodb");
+  if (!ObjectId.isValid(mediaId)) return { ok: false, message: "Unknown file." };
+  const collection = col<MediaDoc>("media");
+  const media = await collection.findOne({ _id: new ObjectId(mediaId) });
+  if (!media) return { ok: false, message: "That file is already gone." };
+
+  const credentials = cloudinaryCredentials();
+  if (credentials && media.publicId) {
+    try {
+      const { v2: cloudinary } = await import("cloudinary");
+      cloudinary.config({ cloud_name: credentials.cloudName, api_key: credentials.apiKey, api_secret: credentials.apiSecret, secure: true });
+      await cloudinary.uploader.destroy(media.publicId, { invalidate: true });
+    } catch (error) {
+      console.error("cloudinary delete failed", error);
+    }
+  }
+
+  await collection.deleteOne({ _id: media._id });
+  return { ok: true, message: "Image deleted." };
 }
 
 export async function listMedia(limit = 120): Promise<MediaDoc[]> {

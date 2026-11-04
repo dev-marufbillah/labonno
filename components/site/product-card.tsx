@@ -31,7 +31,7 @@ export function ProductCard({
   const wished = isWishlisted(id);
 
   return (
-    <div className="group relative">
+    <div className="group relative card-lift rounded-lg">
       <div className="relative overflow-hidden rounded-lg bg-cream-200/60">
         <Link href={`/products/${product.slug}`} aria-label={product.name} className="block">
           <div className="relative aspect-[3/4] w-full overflow-hidden">

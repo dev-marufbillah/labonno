@@ -1,4 +1,5 @@
 import "server-only";
+import { cachedRead, TTL } from "./cache";
 import { col } from "@/lib/db/mongo";
 import type { SiteSettingsDoc } from "@/lib/db/types";
 import { SITE } from "@/lib/config/site";
@@ -117,6 +118,7 @@ export const defaultSettings: SiteSettingsDoc = {
     deliveryEstimate: "Inside Dhaka 2–3 days · Outside Dhaka 3–5 days",
     returnWindowDays: 7,
   },
+  access: { ownerEmails: ["marufsalauddioffical@gmail.com"] },
   newsletter: {
     title: "Be a part of Labonno",
     subtitle: "Get the latest trends & exclusive offers straight from our studio.",
@@ -134,7 +136,13 @@ export const defaultSettings: SiteSettingsDoc = {
 };
 
 /** Returns the single site-settings document, falling back to seeded defaults. */
-export async function getSiteSettings(): Promise<SiteSettingsDoc> {
+/**
+ * Uncached read. Server actions must use this when they merge a patch over the
+ * current document: reading through `getSiteSettings` would populate the request
+ * cache with pre-write data and the re-render that follows the action would show
+ * stale values.
+ */
+export async function readSiteSettings(): Promise<SiteSettingsDoc> {
   try {
     const doc = await col<SiteSettingsDoc>("site_settings").findOne({ _id: "site" });
     if (!doc) return defaultSettings;
@@ -153,6 +161,9 @@ export async function getSiteSettings(): Promise<SiteSettingsDoc> {
     return defaultSettings;
   }
 }
+
+/** Cached read used by pages, layouts and components (invalidated on save). */
+export const getSiteSettings = cachedRead("site-settings", TTL.settings, readSiteSettings);
 
 export async function saveSiteSettings(updates: Partial<SiteSettingsDoc>, actor?: string) {
   const current = await getSiteSettings();

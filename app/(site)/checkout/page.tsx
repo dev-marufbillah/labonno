@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getSiteSettings } from "@/lib/services/settings";
-import { getCurrentUser } from "@/lib/auth/server";
+import { requireCustomer } from "@/lib/auth/server";
+import { getDefaultAddress } from "@/lib/services/addresses";
+import { getEnabledPaymentMethods } from "@/lib/services/payment-methods";
 import { PageHeader } from "@/components/site/page-header";
 import { CheckoutForm } from "@/components/site/checkout-form";
 
@@ -13,7 +15,12 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-  const [settings, user] = await Promise.all([getSiteSettings(), getCurrentUser()]);
+  const user = await requireCustomer("/checkout");
+  const [settings, address, methods] = await Promise.all([
+    getSiteSettings(),
+    getDefaultAddress(user.id),
+    getEnabledPaymentMethods(),
+  ]);
   return (
     <>
       <PageHeader
@@ -24,7 +31,19 @@ export default async function CheckoutPage() {
       />
       <CheckoutForm
         settings={settings}
-        prefill={user ? { name: user.name, email: user.email, phone: user.phone ?? "" } : null}
+        prefill={{ name: user.name, email: user.email, phone: user.phone ?? "" }}
+        address={address}
+        methods={methods.map((method) => ({
+          key: method.key,
+          label: method.label,
+          description: method.description,
+          instructions: method.instructions,
+          number: method.number ?? "",
+          accountType: method.accountType ?? "",
+          requiresReference: method.requiresReference,
+          gateway: method.gateway ?? null,
+          badge: method.badge ?? "",
+        }))}
       />
     </>
   );

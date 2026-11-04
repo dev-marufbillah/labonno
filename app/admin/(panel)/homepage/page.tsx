@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, Eye, EyeOff } from "lucide-react";
-import { getAllHomepageSections } from "@/lib/services/content";
+import { ensureHomepageSections, getAllHomepageSections } from "@/lib/services/content";
 import { getCollections } from "@/lib/services/catalog";
 import { AdminPageTitle, Panel } from "@/components/admin/ui";
 import { ActionButton } from "@/components/admin/action-button";
@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Homepage builder" };
 
 export default async function AdminHomepagePage() {
+  await ensureHomepageSections();
   const [sections, collections] = await Promise.all([getAllHomepageSections(), getCollections({ includeHidden: true })]);
 
   return (

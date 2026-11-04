@@ -40,6 +40,9 @@ export default async function AdminDashboardPage() {
             <Link href="/admin/products/new" className="inline-flex items-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-[10px] uppercase tracking-label text-cream transition hover:bg-ink-soft">
               <Plus className="size-3" /> Add product
             </Link>
+            <Link href="/admin/site" className="inline-flex items-center gap-1.5 rounded-full border border-line px-5 py-2.5 text-[10px] uppercase tracking-label text-ink transition hover:border-gold">
+              Everything on the site
+            </Link>
             <Link href="/admin/orders" className="inline-flex items-center gap-1.5 rounded-full border border-line px-5 py-2.5 text-[10px] uppercase tracking-label text-ink transition hover:border-ink">
               Orders <ArrowUpRight className="size-3" />
             </Link>

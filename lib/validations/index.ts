@@ -133,7 +133,8 @@ export const checkoutSchema = z.object({
       })
     )
     .min(1, "Your bag is empty"),
-  paymentMethod: z.enum(["cod", "bkash", "nagad", "sslcommerz"]),
+  // Data-driven: the key is validated against the enabled methods on the server.
+  paymentMethod: z.string().trim().min(1, "Choose a payment method").max(40),
   couponCode: z.string().trim().optional().nullable(),
   paymentReference: z
     .object({

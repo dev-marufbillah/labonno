@@ -67,6 +67,7 @@ export async function ensureIndexes(): Promise<void> {
       db.collection("homepage_sections").createIndex({ order: 1 }),
       db.collection("content_pages").createIndex({ slug: 1 }, { unique: true }),
       db.collection("wishlists").createIndex({ userId: 1 }, { unique: true }),
+      db.collection("addresses").createIndex({ userId: 1, createdAt: -1 }),
       db.collection("subscribers").createIndex({ email: 1 }, { unique: true }),
       db.collection("inventory_logs").createIndex({ productId: 1, createdAt: -1 }),
       db.collection("media").createIndex({ createdAt: -1 }),

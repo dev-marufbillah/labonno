@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { loginSchema, type LoginInput } from "@/lib/validations";
-import { authClient } from "@/lib/auth/client";
+import { authClient, authErrorMessage } from "@/lib/auth/client";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -20,14 +20,22 @@ export function AdminLoginForm() {
   const onSubmit = async (values: LoginInput) => {
     const { data, error } = await authClient.signIn.email({ email: values.email, password: values.password });
     if (error) {
-      toast.error(error.message ?? "Could not sign in");
+      const { message, hint } = authErrorMessage(error);
+      toast.error(message, hint ? { description: hint, duration: 9000 } : undefined);
       return;
     }
     const role = (data?.user as { role?: string } | undefined)?.role;
     if (role !== "admin" && role !== "super_admin") {
-      await authClient.signOut();
-      toast.error("This account does not have studio access.");
-      return;
+      // Owner addresses are promoted on the spot; everyone else needs an invitation.
+      const claim = await fetch("/api/auth/claim-owner", { method: "POST" }).catch(() => null);
+      if (!claim?.ok) {
+        await authClient.signOut();
+        toast.error("This account does not have studio access.", {
+          description: "Ask the owner to add your email under Admin → Users, then sign in again.",
+          duration: 9000,
+        });
+        return;
+      }
     }
     toast.success("Welcome to the studio");
     router.push("/admin/dashboard");

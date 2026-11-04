@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Instagram, Facebook, Youtube, ArrowUp } from "lucide-react";
 import { getSiteSettings } from "@/lib/services/settings";
 import { getFooterPages } from "@/lib/services/content";
@@ -19,7 +20,17 @@ export async function SiteFooter() {
       <div className="shell py-14">
         <div className="grid gap-10 border-b border-cream/10 pb-12 md:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))]">
           <div>
-            <p className="font-serif text-[26px] tracking-[0.2em] text-cream">{settings.general.brandName}</p>
+            {settings.appearance.logoImage ? (
+              <Image
+                src={settings.appearance.logoImage}
+                alt={settings.general.brandName}
+                width={200}
+                height={48}
+                className="h-11 w-auto object-contain"
+              />
+            ) : (
+              <p className="font-serif text-[26px] tracking-[0.2em] text-cream">{settings.general.brandName}</p>
+            )}
             <p className="mt-2 text-[8px] uppercase tracking-[0.4em] text-cream/50">
               Wear your elegance · {settings.general.brandNameBn}
             </p>

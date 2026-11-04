@@ -10,3 +10,8 @@ next-env.d.ts
 .tsbuildinfo
 
 tsconfig.tsbuildinfo
+
+# local mongodb data + user uploads
+.mongo-data/
+public/uploads/*
+!public/uploads/.gitkeep

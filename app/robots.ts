@@ -1,17 +1,18 @@
 import type { MetadataRoute } from "next";
-import { SITE } from "@/lib/config/site";
+
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL || "https://labonno.com").replace(/\/$/, "");
 
 export default function robots(): MetadataRoute.Robots {
-  const base = SITE.url.replace(/\/$/, "");
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/account", "/api/", "/checkout", "/cart", "/order-success", "/wishlist"],
+        // Private or transactional areas should never appear in search results.
+        disallow: ["/admin", "/admin/", "/api/", "/account", "/account/", "/cart", "/checkout", "/wishlist", "/order-success", "/login", "/register"],
       },
     ],
-    sitemap: `${base}/sitemap.xml`,
-    host: base,
+    sitemap: `${BASE}/sitemap.xml`,
+    host: BASE,
   };
 }

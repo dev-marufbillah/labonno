@@ -11,7 +11,14 @@
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
     "db:mongo": "bash scripts/start-mongo.sh",
-    "smoke": "node --env-file=.env.local --require ./scripts/server-only.cjs --import tsx scripts/smoke.ts"
+    "smoke": "node --env-file=.env.local --require ./scripts/server-only.cjs --import tsx scripts/smoke.ts",
+    "setup": "node scripts/init-env.cjs",
+    "seed:users": "tsx scripts/seed-users.ts",
+    "bench": "node --env-file=.env.local --require ./scripts/server-only.cjs --import tsx scripts/bench.ts",
+    "doctor": "node --require ./scripts/server-only.cjs --import tsx scripts/doctor.ts",
+    "check:routes": "tsx scripts/check-routes.ts",
+    "check:cloudinary": "node --require ./scripts/server-only.cjs --import tsx scripts/check-cloudinary.ts",
+    "check:env": "node --require ./scripts/server-only.cjs --import tsx scripts/check-env.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

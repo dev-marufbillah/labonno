@@ -35,7 +35,7 @@ export default async function GeneralSettingsPage() {
           group="seo"
           values={{ seo: settings.seo }}
           fields={[
-            { path: "seo.defaultTitle", label: "Default page title" },
+            { path: "seo.defaultTitle", label: "Default page title", hint: "Browser-tab title for the homepage. Leave empty to use the brand name and tagline automatically." },
             { path: "seo.titleTemplate", label: "Title template", hint: "%s is replaced with the page title." },
             { path: "seo.defaultDescription", label: "Default meta description", type: "textarea" },
           ]}

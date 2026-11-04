@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { listMedia } from "@/lib/services/media";
+import { listMedia, cloudinaryConfigured } from "@/lib/services/media";
 import { AdminPageTitle, Panel } from "@/components/admin/ui";
 import { MediaUploader } from "@/components/admin/media-uploader";
+import { MediaDeleteButton } from "@/components/admin/media-delete-button";
 import { formatDate } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Media library" };
 
 export default async function AdminMediaPage() {
   const media = await listMedia();
-  const cloudinary = Boolean(process.env.CLOUDINARY_CLOUD_NAME);
+  const cloudinary = cloudinaryConfigured();
 
   return (
     <div>
@@ -43,6 +44,7 @@ export default async function AdminMediaPage() {
                     onFocus={(event) => event.currentTarget.select()}
                     className="mt-1.5 w-full rounded border border-line bg-white/70 px-1.5 py-1 text-[9.5px] text-ink-muted"
                   />
+                  <MediaDeleteButton id={String(item._id)} url={item.url} />
                 </div>
               </li>
             ))}

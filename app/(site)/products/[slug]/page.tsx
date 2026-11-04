@@ -93,7 +93,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <span className="text-ink">{product.name}</span>
         </nav>
 
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+        <div className="mobile-bar-space grid gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
           <ProductGallery images={product.images} name={product.name} />
 
           <div className="lg:pt-2">

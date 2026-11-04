@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
+import { SignOutButton } from "./sign-out-button";
 
 const LINKS = [
   { label: "Overview", href: "/account" },
   { label: "Orders", href: "/account/orders" },
+  { label: "Addresses", href: "/account/addresses" },
+  { label: "Reviews", href: "/account/reviews" },
   { label: "Profile", href: "/account/profile" },
   { label: "Wishlist", href: "/wishlist" },
 ];

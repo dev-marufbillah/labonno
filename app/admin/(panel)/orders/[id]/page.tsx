@@ -6,6 +6,9 @@ import { getOrderById } from "@/lib/services/orders";
 import { AdminPageTitle, Panel } from "@/components/admin/ui";
 import { StatusBadge } from "@/components/ui/badge";
 import { OrderControls } from "@/components/admin/order-controls";
+import { ResendEmailButton } from "@/components/admin/resend-email-button";
+import { mailerSummary } from "@/lib/email/mailer";
+import { getPaymentLabel } from "@/lib/services/payment-methods";
 import { formatDateTime, formatMoney } from "@/lib/utils/format";
 import { PAYMENT_METHOD_LABELS, ORDER_STATUS_LABELS } from "@/lib/config/site";
 
@@ -18,11 +21,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const order = await getOrderById(id);
   if (!order) notFound();
 
+  const [paymentLabel, mail] = await Promise.all([getPaymentLabel(order.paymentMethod), Promise.resolve(mailerSummary())]);
+
   return (
     <div>
       <AdminPageTitle
         title={order.orderNumber}
-        description={`Placed ${formatDateTime(order.createdAt)} · ${PAYMENT_METHOD_LABELS[order.paymentMethod]}`}
+        description={`Placed ${formatDateTime(order.createdAt)} · ${paymentLabel}`}
         action={
           <div className="flex items-center gap-2">
             <StatusBadge value={order.status} />
@@ -78,7 +83,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             </Panel>
 
             <Panel title="Payment">
-              <p className="text-[13px] text-ink">{PAYMENT_METHOD_LABELS[order.paymentMethod]}</p>
+              <p className="text-[13px] text-ink">{paymentLabel ?? PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod}</p>
               <p className="mt-1 text-[12px] text-ink-muted">Status: {order.paymentStatus.replace(/_/g, " ")}</p>
               {order.paymentRef?.transactionId ? (
                 <div className="mt-3 space-y-1 rounded-md bg-cream-200/60 p-2.5 text-[11.5px]">
@@ -109,6 +114,17 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         </div>
 
         <div className="space-y-4">
+          <Panel title="Customer email">
+            <p className="text-[12px] leading-relaxed text-ink-muted">
+              {mail.configured
+                ? `Order emails are on, sent from ${mail.from}.`
+                : "Email is not configured yet — add RESEND_API_KEY and EMAIL_FROM to .env.local to send confirmations."}
+            </p>
+            <div className="mt-3">
+              <ResendEmailButton orderId={String(order._id)} email={order.customer.email} />
+            </div>
+          </Panel>
+
           <Panel title="Actions">
             <OrderControls
               orderId={String(order._id)}

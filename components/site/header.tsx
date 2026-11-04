@@ -10,6 +10,7 @@ export async function SiteHeader() {
       announcement={settings.general.announcement}
       brandName={settings.general.brandName}
       tagline={settings.general.tagline}
+      logoImage={settings.appearance.logoImage || undefined}
       user={user ? { id: user.id, name: user.name, email: user.email, role: user.role } : null}
     />
   );

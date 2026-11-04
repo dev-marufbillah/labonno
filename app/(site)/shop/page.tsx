@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { listProducts, getProductFacets } from "@/lib/services/products";
-import { PageHeader } from "@/components/site/page-header";
+import { getCategories } from "@/lib/services/catalog";
+import { ShopHero } from "@/components/site/shop-hero";
+import { CategoryRail } from "@/components/site/category-rail";
 import { ListingLayout, ListingSkeleton } from "@/components/site/product-listing";
 import { pickSearchParam, parseList } from "@/lib/utils/helpers";
 
@@ -22,7 +24,7 @@ export default async function ShopPage({
   const params = await searchParams;
   const page = Number(pickSearchParam(params.page) ?? 1) || 1;
 
-  const [result, facets] = await Promise.all([
+  const [result, facets, categories] = await Promise.all([
     listProducts({
       category: pickSearchParam(params.category),
       collection: pickSearchParam(params.collection),
@@ -36,16 +38,25 @@ export default async function ShopPage({
       perPage: 12,
     }),
     getProductFacets(),
+    getCategories(),
   ]);
+  const activeCategory = pickSearchParam(params.category);
 
   return (
     <>
-      <PageHeader
+      <ShopHero
         eyebrow="The collection"
         title="Shop all"
         description="Every piece is cut, embroidered and finished in our Dhaka studio and partner ateliers. Small runs, considered fabric, no repetition."
-        breadcrumbs={[{ label: "Shop" }]}
+        image="/images/collection-featured.jpg"
+        facts={[
+          { label: "Pieces", value: String(result.total) },
+          { label: "Categories", value: String(categories.length) },
+          { label: "Made in", value: "Dhaka" },
+        ]}
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Shop" }]}
       />
+      <CategoryRail categories={categories} activeSlug={activeCategory} />
       <Suspense fallback={<ListingSkeleton />}>
         <ListingLayout
           products={result.products}

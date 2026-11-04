@@ -298,14 +298,21 @@ export async function updateOrderStatus(
 export async function updatePaymentStatus(
   orderId: string,
   paymentStatus: PaymentStatus,
-  actor?: string
+  actor?: string,
+  /** Gateway proof (transaction id, provider, paid time) recorded with the payment. */
+  reference?: { provider: string; transactionId?: string; gatewayRef?: string; senderNumber?: string; paidAt?: Date } | null
 ): Promise<{ ok: boolean; message: string }> {
   const order = await getOrderById(orderId);
   if (!order) return { ok: false, message: "Order not found." };
   await col<OrderDoc>("orders").updateOne(
     { _id: order._id },
     {
-      $set: { paymentStatus, updatedAt: new Date(), ...(paymentStatus === "paid" ? { "paymentRef.paidAt": new Date() } : {}) },
+      $set: {
+        paymentStatus,
+        updatedAt: new Date(),
+        ...(reference ? { paymentRef: { ...(order.paymentRef ?? {}), ...reference } } : {}),
+        ...(paymentStatus === "paid" ? { "paymentRef.paidAt": reference?.paidAt ?? new Date() } : {}),
+      },
       $push: {
         statusHistory: {
           status: order.status,

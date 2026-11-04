@@ -1,5 +1,6 @@
 import "server-only";
 import { col } from "@/lib/db/mongo";
+import { invalidateSiteCache } from "@/lib/services/cache";
 import { getCurrentUser, isAdminRole } from "@/lib/auth/server";
 import type { AuditLogDoc, Role } from "@/lib/db/types";
 
@@ -28,6 +29,11 @@ export async function requireActor(minRole: Role = "admin") {
   return user;
 }
 
+/**
+ * Every successful admin mutation records an audit entry — and clears the storefront
+ * read cache, so a saved product/banner/setting is visible on the next request instead
+ * of waiting for its TTL. This is the single invalidation point for the whole panel.
+ */
 export async function audit(actor: string, action: string, target: string, meta?: Record<string, unknown>) {
   const entry: AuditLogDoc = {
     actorId: "",
@@ -38,6 +44,7 @@ export async function audit(actor: string, action: string, target: string, meta?
     createdAt: new Date(),
   };
   await col<AuditLogDoc>("audit_logs").insertOne(entry);
+  invalidateSiteCache();
 }
 
 export function fail(error: unknown): ActionState {

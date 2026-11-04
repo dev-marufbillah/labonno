@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { loginSchema, registerSchema, type LoginInput, type RegisterInput } from "@/lib/validations";
-import { authClient } from "@/lib/auth/client";
+import { authClient, authErrorMessage } from "@/lib/auth/client";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -45,7 +45,8 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   const onSubmit = async (values: LoginInput) => {
     const { error } = await authClient.signIn.email({ email: values.email, password: values.password });
     if (error) {
-      toast.error(error.message ?? "Could not sign you in");
+      const { message, hint } = authErrorMessage(error);
+      toast.error(message, hint ? { description: hint, duration: 9000 } : undefined);
       return;
     }
     toast.success("Welcome back");
@@ -80,7 +81,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
       ) : null}
       <p className="text-center text-[12px] text-ink-muted">
         New to Labonno?{" "}
-        <Link href="/register" className="text-ink underline underline-offset-4">Create an account</Link>
+        <Link href={`/register?next=${encodeURIComponent(next)}`} className="text-ink underline underline-offset-4">Create an account</Link>
       </p>
     </div>
   );
@@ -88,6 +89,9 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
 
 export function RegisterForm({ googleEnabled }: { googleEnabled: boolean }) {
   const router = useRouter();
+  const params = useSearchParams();
+  // Same as sign-in: honour where the visitor was headed (bag, checkout, a product).
+  const next = params.get("next") || "/account";
   const {
     register,
     handleSubmit,
@@ -102,11 +106,12 @@ export function RegisterForm({ googleEnabled }: { googleEnabled: boolean }) {
       phone: values.phone || undefined,
     });
     if (error) {
-      toast.error(error.message ?? "Could not create your account");
+      const { message, hint } = authErrorMessage(error);
+      toast.error(message, hint ? { description: hint, duration: 9000 } : undefined);
       return;
     }
     toast.success("Account created — welcome to Labonno");
-    router.push("/account");
+    router.push(next);
     router.refresh();
   };
 
@@ -154,7 +159,7 @@ export function RegisterForm({ googleEnabled }: { googleEnabled: boolean }) {
       ) : null}
       <p className="text-center text-[12px] text-ink-muted">
         Already have an account?{" "}
-        <Link href="/login" className="text-ink underline underline-offset-4">Sign in</Link>
+        <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-ink underline underline-offset-4">Sign in</Link>
       </p>
     </div>
   );

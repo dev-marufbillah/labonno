@@ -97,7 +97,47 @@ export type OrderStatus =
 
 export type PaymentStatus = "unpaid" | "pending_verification" | "paid" | "refunded" | "failed";
 
-export type PaymentMethod = "cod" | "bkash" | "nagad" | "sslcommerz";
+/**
+ * Payment methods are data, not code: the admin panel can add any number of them
+ * (bKash, Nagad, card, bank transfer, cash on delivery…) and checkout renders whatever
+ * is enabled. The four original keys stay in the union for autocomplete.
+ */
+export type PaymentMethod = "cod" | "bkash" | "nagad" | "sslcommerz" | (string & {});
+
+export type PaymentKind = "manual" | "gateway";
+export type PaymentGateway = "bkash" | "sslcommerz" | null;
+
+export interface PaymentMethodDoc {
+  _id?: ObjectId;
+  /** Stable identifier stored on orders; lowercase, no spaces. */
+  key: string;
+  label: string;
+  kind: PaymentKind;
+  enabled: boolean;
+  order: number;
+  description: string;
+  instructions: string;
+  /** Manual methods: the number/account customers send money to. */
+  number?: string;
+  accountType?: string;
+  /** Manual methods ask for the sender number + transaction id at checkout. */
+  requiresReference: boolean;
+  /** Gateway methods redirect to the provider instead of collecting a reference. */
+  gateway: PaymentGateway;
+  badge?: string;
+  /** Gateway credentials. Empty means "use the environment variables". */
+  config?: {
+    appKey?: string;
+    appSecret?: string;
+    username?: string;
+    password?: string;
+    storeId?: string;
+    storePassword?: string;
+    sandbox?: boolean;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface OrderItem {
   productId: string;
@@ -180,6 +220,7 @@ export type SectionType =
   | "category_arches"
   | "featured_collection"
   | "product_grid"
+  | "offers"
   | "editorial"
   | "newsletter";
 
@@ -273,6 +314,8 @@ export interface SiteSettingsDoc {
     returnWindowDays: number;
   };
   newsletter: { title: string; subtitle: string; image: string; buttonLabel: string };
+  /** Owner addresses — these accounts always keep studio access. */
+  access?: { ownerEmails: string[] };
   seo: { defaultTitle: string; titleTemplate: string; defaultDescription: string; keywords: string[] };
   updatedAt: Date;
 }
@@ -289,6 +332,21 @@ export interface InventoryLogDoc {
   orderNumber?: string;
   actor?: string;
   createdAt: Date;
+}
+
+export interface AddressDoc {
+  _id?: ObjectId;
+  userId: string;
+  label: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  area: string;
+  district: string;
+  postcode?: string;
+  isDefault: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface WishlistDoc {

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronDown,
@@ -33,12 +34,14 @@ export function HeaderClient({
   announcement,
   brandName,
   tagline,
+  logoImage,
   user,
 }: {
   navigation: NavItem[];
   announcement: string;
   brandName: string;
   tagline: string;
+  logoImage?: string;
   user: { id: string; name: string; email: string; role: string } | null;
 }) {
   const pathname = usePathname();
@@ -137,21 +140,37 @@ export function HeaderClient({
             type="button"
             aria-label="Open menu"
             onClick={() => setMobileOpen(true)}
-            className="-ml-1 p-2 lg:hidden"
+            className="tap-target -ml-1 grid place-items-center p-2 lg:hidden"
           >
             <Menu className="size-5" strokeWidth={1.4} />
           </button>
 
           <Link href="/" className="flex flex-col items-center leading-none" aria-label={`${brandName} home`}>
-            <span className="font-serif text-[22px] tracking-[0.16em] text-ink md:text-[26px]">{brandName}</span>
-            <span className="mt-1 hidden text-[7.5px] uppercase tracking-[0.4em] text-ink-muted md:block">{tagline}</span>
+            {logoImage ? (
+              <>
+                <Image
+                  src={logoImage}
+                  alt={brandName}
+                  width={180}
+                  height={44}
+                  priority
+                  className="h-8 w-auto object-contain md:h-10"
+                />
+                <span className="mt-1 hidden text-[7.5px] uppercase tracking-[0.4em] text-ink-muted md:block">{tagline}</span>
+              </>
+            ) : (
+              <>
+                <span className="font-serif text-[22px] tracking-[0.16em] text-ink md:text-[26px]">{brandName}</span>
+                <span className="mt-1 hidden text-[7.5px] uppercase tracking-[0.4em] text-ink-muted md:block">{tagline}</span>
+              </>
+            )}
           </Link>
 
           <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-3">
-            <button type="button" aria-label="Search" onClick={() => setSearchOpen(true)} className="p-2">
+            <button type="button" aria-label="Search" onClick={() => setSearchOpen(true)} className="tap-target grid place-items-center p-2">
               <Search className="size-[18px]" strokeWidth={1.4} />
             </button>
-            <Link href="/wishlist" aria-label="Wishlist" className="relative hidden p-2 sm:block">
+            <Link href="/wishlist" aria-label="Wishlist" className="tap-target relative hidden place-items-center p-2 sm:grid">
               <Heart className="size-[18px]" strokeWidth={1.4} />
               {wishlist.length > 0 && (
                 <span className="absolute -right-0.5 top-1 grid size-4 place-items-center rounded-full bg-gold text-[9px] text-white">
@@ -201,7 +220,7 @@ export function HeaderClient({
                 </>
               )}
             </div>
-            <button type="button" aria-label="Open bag" onClick={() => setCartOpen(true)} className="relative p-2">
+            <button type="button" aria-label="Open bag" onClick={() => setCartOpen(true)} className="tap-target relative grid place-items-center p-2">
               <ShoppingBag className="size-[18px]" strokeWidth={1.4} />
               {cartCount > 0 && (
                 <span className="absolute -right-0.5 top-1 grid size-4 place-items-center rounded-full bg-ink text-[9px] text-cream">
@@ -219,7 +238,11 @@ export function HeaderClient({
           <div className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]" onClick={() => setMobileOpen(false)} aria-hidden />
           <div className="absolute inset-y-0 left-0 flex w-[86%] max-w-sm flex-col bg-cream-50 shadow-luxe animate-fade-in">
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
-              <span className="font-serif text-xl tracking-[0.16em]">{brandName}</span>
+              {logoImage ? (
+                <Image src={logoImage} alt={brandName} width={140} height={36} className="h-8 w-auto object-contain" />
+              ) : (
+                <span className="font-serif text-xl tracking-[0.16em]">{brandName}</span>
+              )}
               <button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)} className="p-1.5">
                 <X className="size-5" strokeWidth={1.4} />
               </button>
@@ -242,20 +265,20 @@ export function HeaderClient({
                 </div>
               ))}
               <div className="mt-6 space-y-2 text-[13px]">
-                <Link href="/wishlist" className="block py-1.5">Wishlist</Link>
-                <Link href="/cart" className="block py-1.5">Shopping bag</Link>
-                <Link href="/track-order" className="block py-1.5">Track order</Link>
+                <Link href="/wishlist" className="tap-target flex items-center py-2.5">Wishlist</Link>
+                <Link href="/cart" className="tap-target flex items-center py-2.5">Shopping bag</Link>
+                <Link href="/track-order" className="tap-target flex items-center py-2.5">Track order</Link>
                 {user ? (
                   <>
-                    <Link href="/account" className="block py-1.5">My account</Link>
-                    <button type="button" onClick={signOut} className="block py-1.5 text-left text-red-700">
+                    <Link href="/account" className="tap-target flex items-center py-2.5">My account</Link>
+                    <button type="button" onClick={signOut} className="tap-target flex items-center py-2.5 text-left text-red-700">
                       Sign out
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link href="/login" className="block py-1.5">Sign in</Link>
-                    <Link href="/register" className="block py-1.5">Create account</Link>
+                    <Link href="/login" className="tap-target flex items-center py-2.5 font-medium">Sign in</Link>
+                    <Link href="/register" className="tap-target flex items-center py-2.5 text-gold-dark">Create account</Link>
                   </>
                 )}
               </div>

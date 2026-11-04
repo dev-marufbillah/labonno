@@ -63,6 +63,7 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
 
 export const ADMIN_NAV = [
   { label: "Dashboard", href: "/admin/dashboard", icon: "LayoutDashboard" },
+  { label: "Everything", href: "/admin/site", icon: "PanelsTopLeft" },
   { label: "Orders", href: "/admin/orders", icon: "ShoppingBag" },
   { label: "Products", href: "/admin/products", icon: "Package" },
   { label: "Inventory", href: "/admin/inventory", icon: "Boxes" },

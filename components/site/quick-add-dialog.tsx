@@ -20,7 +20,7 @@ export function QuickAddDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
-  const { addToCart } = useCommerce();
+  const { addToCart, signedIn } = useCommerce();
   const colors = product.colors?.length ? product.colors : [{ name: "Natural", hex: "#D8C9B4" }];
   const sizes = product.sizes?.length ? product.sizes : ["One size"];
   const [size, setSize] = React.useState<string>(sizes[0]);
@@ -111,10 +111,10 @@ export function QuickAddDialog({
                 quantity: 1,
                 maxStock: stock,
               });
-              onOpenChange(false);
+              if (signedIn) onOpenChange(false);
             }}
           >
-            Add to bag
+            {signedIn ? "Add to bag" : "Sign in to add"}
           </Button>
           <Button
             variant="outline"

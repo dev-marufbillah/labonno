@@ -37,7 +37,7 @@ CMS pages, policies, FAQ, contact     Settings (general, appearance, payments, s
 
 ```bash
 npm install
-cp .env.example .env.local        # then fill in the values below
+npm run setup                     # creates .env.local with a generated auth secret
 npm run db:mongo                  # local replica set on 127.0.0.1:27017 (rs0)
 npm run seed                      # categories, collections, 16 products, CMS content, demo orders
 npm run dev                       # http://localhost:3000  ·  /admin for the panel
@@ -86,7 +86,11 @@ from **Admin → Settings → Payments**, so the storefront never shows a button
 | `npm run build` / `npm start` | Production build / serve |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint via `next lint` |
+| `npm run setup` | Creates `.env.local` from `.env.example` with a fresh `BETTER_AUTH_SECRET` (never overwrites) |
 | `npm run seed` | Idempotent seed: drops and reloads catalogue + CMS demo data |
+| `npm run check:routes` | Assert the access rules for guests / customers / staff (27 cases) |
+| `npm run doctor` | Diagnose sign-in problems: env file, database, seeded accounts, live sign-in request |
+| `npm run bench` | Cold vs warm read timings for the storefront cache |
 | `npm run smoke` | Headless data-layer test (40 checks) against the live database — see `docs/verification.md` |
 | `npm run db:mongo` | Starts a local single-node replica set with a small WiredTiger cache |
 
@@ -118,6 +122,64 @@ middleware.ts      edge gate for /admin and /account (cookie presence only)
 scripts/           seed, local mongo launcher, smoke test
 docs/              architecture, admin guide, verification notes
 ```
+
+### Payments, email and discoverability
+
+**Payment methods are data.** The owner manages them in Admin → Settings → Payment methods:
+add any number (Rocket, bank transfer, cash), reorder them, switch them off, delete them,
+or turn a manual wallet into an automatic gateway. Checkout renders whatever is enabled and
+the server validates the choice — nothing is hardcoded.
+
+* `manual` — the customer sends money, enters the sender number + transaction id, staff
+  verify before dispatch.
+* `gateway: "bkash"` — bKash Tokenized Checkout: grant token → create → customer approves →
+  callback executes the payment server-to-server. Only a completed execute with the right
+  amount marks the order paid (`lib/payments/bkash.ts`).
+* `gateway: "sslcommerz"` — card/wallet window; `val_id` is validated before marking paid.
+
+**Order email** is sent through Resend (`lib/email/*`): confirmation on checkout, status
+updates on confirm/ship/deliver/cancel, and a “resend confirmation” button on the order
+page. With no key configured nothing is sent and nothing breaks.
+
+**SEO**: `app/sitemap.ts` builds itself from the catalogue, `app/robots.ts` keeps private
+areas out of search, and JSON-LD covers Organization, WebSite (with search action) and each
+Product. **Analytics** load only when an id is present (`NEXT_PUBLIC_GA_ID`,
+`NEXT_PUBLIC_META_PIXEL_ID`).
+
+### Who can do what (access rules)
+
+Everything a customer does that creates or exposes data requires an account — there are no
+guest bags, guest orders or anonymous wishlists, so an order always has a real owner and
+support can always trace it.
+
+| Area | Guest | Signed-in customer | Staff |
+| --- | --- | --- | --- |
+| Home, shop, product, collection, pages | ✔ | ✔ | ✔ |
+| Add to bag, wishlist, checkout, order history | → sign in | ✔ | ✔ |
+| `/account` (orders, addresses, reviews, profile) | → sign in | ✔ | ✔ |
+| `/admin/**` | → studio login | ⛔ | ✔ (role checked server-side) |
+
+The rules live in `lib/auth/routes.ts` as one pure function (middleware, page guards and
+API routes all agree), and `npm run check:routes` asserts the whole matrix — 27 cases.
+
+### Speed
+
+Storefront reads go through two cache layers (`lib/services/cache.ts`):
+
+1. **In-process TTL cache** — catalogue, CMS content and settings are re-used for 15 s
+   instead of re-querying MongoDB on every request.
+2. **React `cache()`** — the header, footer and page share one query inside a render.
+
+Every admin mutation calls `audit()`, which clears the cache, so a saved change appears
+on the next request. Measured with `npm run bench` (see `docs/verification.md`): the eight
+storefront reads cost ~25 ms cold and ~0.13 ms warm — against a remote Atlas cluster the
+cold path also pays network round trips, so the saving is larger in production.
+
+### Motion
+
+Scroll reveals (`components/ui/reveal.tsx`), a slow Ken Burns drift on the hero slide,
+card lift + hover zoom on product cards and staggered hero copy — all CSS driven and
+fully disabled for `prefers-reduced-motion: reduce`.
 
 ### Rendering strategy
 
@@ -156,3 +218,5 @@ flash edits from the panel. `sitemap.xml` is dynamic for the same reason.
 - `docs/architecture.md` — data model, service layer, order lifecycle, auth & roles, payments
 - `docs/admin-guide.md` — task-by-task guide for studio staff
 - `docs/verification.md` — what has been tested, how, and what needs a bigger machine
+- `docs/VSCODE-STEP-BY-STEP-BN.md` — **বাংলায়** VS Code-এ এখনই কী কী করতে হবে (ধাপে ধাপে, কমান্ড + প্রত্যাশিত আউটপুট + সমস্যার সমাধান)
+- `docs/SETUP-GUIDE-BN.md` — **বাংলায়** অ্যাডমিন ব্যবহারবিধি + Cloudinary / SSLCommerz / Google login / MongoDB সেটআপ

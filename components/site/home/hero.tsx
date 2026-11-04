@@ -37,7 +37,7 @@ export function HeroCarousel({ slides, autoPlay = true }: { slides: HeroSlide[];
   return (
     <section className="shell pt-4 md:pt-6">
       <div className="relative overflow-hidden rounded-lg md:rounded-xl">
-        <div className="relative h-[440px] w-full sm:h-[520px] lg:h-[600px]">
+        <div className="relative h-[64svh] max-h-[560px] min-h-[430px] w-full sm:h-[520px] sm:max-h-none lg:h-[600px]">
           {slides.map((slide, i) => (
             <div
               key={`${slide.title}-${i}`}
@@ -53,36 +53,40 @@ export function HeroCarousel({ slides, autoPlay = true }: { slides: HeroSlide[];
                 fill
                 priority={i === 0}
                 sizes="100vw"
-                className="object-cover object-[60%_center] md:object-center"
+                className={cn(
+                  "object-cover object-[60%_center] md:object-center",
+                  // Slow drift on the visible slide keeps the hero alive without motion sickness.
+                  i === index ? "animate-ken-burns" : ""
+                )}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-cream/90 via-cream/45 to-transparent md:from-cream/80 md:via-cream/20" />
             </div>
           ))}
 
-          <div className="relative z-10 flex h-full flex-col justify-center px-6 sm:px-10 lg:px-16">
+          <div className="relative z-10 flex h-full flex-col justify-center px-6 pb-14 sm:px-10 sm:pb-0 lg:px-16">
             {slides.map((slide, i) => (
               <div
                 key={`content-${i}`}
                 className={cn(
-                  "max-w-md transition-all duration-700",
-                  i === index ? "block animate-fade-up" : "hidden"
+                  "max-w-md",
+                  i === index ? "block [&>*]:animate-fade-up" : "hidden"
                 )}
               >
                 {slide.eyebrow ? (
-                  <p className="label-line text-[9.5px] tracking-label text-ink-soft">{slide.eyebrow}</p>
+                  <p className="label-line text-[9.5px] tracking-label text-ink-soft animate-delay-1">{slide.eyebrow}</p>
                 ) : null}
-                <h1 className="mt-4 font-serif text-[40px] font-light leading-[0.98] tracking-[-0.02em] text-ink sm:text-[54px] lg:text-[64px]">
+                <h1 className="mt-3 font-serif text-[32px] font-light leading-[1.02] tracking-[-0.02em] text-ink sm:mt-4 sm:text-[54px] sm:leading-[0.98] lg:text-[64px]">
                   {slide.title}
                 </h1>
                 {slide.subtitle ? (
-                  <p className="mt-3 font-serif text-[30px] italic leading-none text-gold-dark sm:text-[38px]">
+                  <p className="mt-2.5 font-serif text-[23px] italic leading-tight text-gold-dark animate-delay-2 sm:mt-3 sm:text-[38px] sm:leading-none">
                     {slide.subtitle}
                   </p>
                 ) : null}
                 {slide.ctaLabel ? (
                   <Link
                     href={slide.ctaHref || "/shop"}
-                    className="group mt-8 inline-flex items-center gap-2 rounded-full border border-ink/35 bg-cream/40 px-6 py-3 text-[9.5px] uppercase tracking-label text-ink backdrop-blur-sm transition-all duration-300 hover:bg-ink hover:text-cream"
+                    className="tap-target group mt-6 inline-flex animate-delay-3 items-center gap-2 rounded-full border border-ink/35 bg-cream/40 px-6 py-3 text-[9.5px] uppercase tracking-label text-ink backdrop-blur-sm transition-all duration-300 hover:bg-ink hover:text-cream sm:mt-8"
                   >
                     {slide.ctaLabel}
                     <ArrowRight className="size-3 transition-transform duration-300 group-hover:translate-x-0.5" />

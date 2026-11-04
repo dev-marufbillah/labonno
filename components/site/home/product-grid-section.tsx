@@ -3,6 +3,7 @@ import type { ProductDoc } from "@/lib/db/types";
 import { ProductCard } from "@/components/site/product-card";
 import { toCardData } from "@/lib/utils/product-card";
 import { SectionHeading } from "./section-heading";
+import { Reveal } from "@/components/ui/reveal";
 
 export function ProductGridSection({
   eyebrow,
@@ -43,7 +44,9 @@ export function ProductGridSection({
           }
         >
           {products.map((product, i) => (
-            <ProductCard key={String(product._id)} product={toCardData(product)} priority={i < 2} />
+            <Reveal key={String(product._id)} delay={i * 70}>
+              <ProductCard product={toCardData(product)} priority={i < 2} />
+            </Reveal>
           ))}
         </div>
         {ctaHref && ctaLabel ? (

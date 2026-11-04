@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import type { ProductDoc } from "@/lib/db/types";
 import { ProductCard } from "@/components/site/product-card";
-import { FilterToolbar, Pagination, type FilterOptions } from "@/components/site/filters";
+import { Reveal } from "@/components/ui/reveal";
+import { FilterToolbar, FilterSidebar, Pagination, type FilterOptions } from "@/components/site/filters";
+import { ListingScroll } from "@/components/site/listing-scroll";
 import { ProductCardSkeleton } from "@/components/ui/skeleton";
 import { toCardData } from "@/lib/utils/product-card";
 
@@ -35,12 +37,14 @@ export function ProductGrid({
     <div
       className={
         columns === 3
-          ? "grid flex-1 grid-cols-2 gap-x-4 gap-y-9 sm:gap-x-5 md:grid-cols-3"
-          : "grid flex-1 grid-cols-2 gap-x-4 gap-y-9 sm:gap-x-5 lg:grid-cols-4"
+          ? "grid flex-1 grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-3"
+          : "grid flex-1 grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-3"
       }
     >
       {products.map((product, index) => (
-        <ProductCard key={String(product._id)} product={toCardData(product)} priority={index < 4} />
+        <Reveal key={String(product._id)} delay={(index % 4) * 70}>
+          <ProductCard product={toCardData(product)} priority={index < 4} />
+        </Reveal>
       ))}
     </div>
   );
@@ -62,12 +66,26 @@ export function ListingLayout({
   basePath?: string;
 }) {
   return (
-    <div className="shell py-10">
-      <div className="lg:flex lg:gap-10">
+    <div className="shell py-6 md:py-8">
+      <Suspense fallback={null}>
+        <ListingScroll />
+      </Suspense>
+      <Suspense fallback={null}>
+        <FilterToolbar options={options} total={total} basePath={basePath} />
+      </Suspense>
+      <div id="listing" className="mt-7 scroll-mt-24 lg:flex lg:gap-10">
         <Suspense fallback={null}>
-          <FilterToolbar options={options} total={total} basePath={basePath} />
+          <FilterSidebar options={options} basePath={basePath} />
         </Suspense>
         <div className="min-w-0 flex-1">
+          {/* A quiet editorial line so the grid feels curated rather than dumped. */}
+          <div className="mb-6 flex items-baseline justify-between border-b border-line pb-4">
+            <p className="font-serif text-[15px] text-ink">
+              {total} piece{total === 1 ? "" : "s"}
+              <span className="ml-2 text-[11px] uppercase tracking-label text-ink-muted">page {page} of {Math.max(totalPages, 1)}</span>
+            </p>
+            <p className="hidden text-[10px] uppercase tracking-label text-ink-muted sm:block">Made in limited runs</p>
+          </div>
           <ProductGrid products={products} basePath={basePath} />
           <Suspense fallback={null}>
             <Pagination page={page} totalPages={totalPages} basePath={basePath} />

@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { authClient, useSession } from "@/lib/auth/client";
 
 export interface CartItem {
   key: string;
@@ -26,6 +28,8 @@ interface CommerceContextValue {
   updateQuantity: (key: string, quantity: number) => void;
   clearCart: () => void;
   cartReady: boolean;
+  /** True once the visitor has an account — the bag and wishlist require one. */
+  signedIn: boolean;
   wishlist: string[];
   wishlistReady: boolean;
   toggleWishlist: (productId: string, name?: string) => Promise<void>;
@@ -41,6 +45,35 @@ function lineKey(productId: string, size: string, color: string) {
 }
 
 export function CommerceProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session, isPending } = useSession();
+  const signedIn = Boolean(session?.user);
+
+  /**
+   * Adding to the bag, saving pieces and checking out all require an account, so the
+   * shop and the order history always agree on who owns what. The server enforces it
+   * too (page guards + /api/checkout + wishlist route); this keeps the experience
+   * honest: the visitor is taken to sign in and then straight back to where they were.
+   */
+  const ensureSignedIn = React.useCallback(
+    async (reason: string) => {
+      if (signedIn) return true;
+      if (isPending) {
+        const { data } = await authClient.getSession();
+        if (data?.user) return true;
+      }
+      const next = `${pathname || "/"}`;
+      toast.error("Please sign in first", {
+        description: reason,
+        action: { label: "Sign in", onClick: () => router.push(`/login?next=${encodeURIComponent(next)}`) },
+      });
+      router.push(`/login?next=${encodeURIComponent(next)}`);
+      return false;
+    },
+    [signedIn, isPending, pathname, router]
+  );
+
   const [cart, setCart] = React.useState<CartItem[]>([]);
   const [wishlist, setWishlist] = React.useState<string[]>([]);
   const [cartReady, setCartReady] = React.useState(false);
@@ -101,16 +134,19 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addToCart: CommerceContextValue["addToCart"] = (item) => {
-    const key = lineKey(item.productId, item.size, item.color);
-    setCart((prev) => {
-      const existing = prev.find((line) => line.key === key);
-      if (existing) {
-        const nextQty = Math.min(item.maxStock || 99, existing.quantity + item.quantity);
-        return prev.map((line) => (line.key === key ? { ...line, quantity: nextQty } : line));
-      }
-      return [...prev, { ...item, key }];
-    });
-    toast.success("Added to bag", { description: `${item.name} · ${item.size} / ${item.color}` });
+    void (async () => {
+      if (!(await ensureSignedIn("Create an account or sign in to add pieces to your bag."))) return;
+      const key = lineKey(item.productId, item.size, item.color);
+      setCart((prev) => {
+        const existing = prev.find((line) => line.key === key);
+        if (existing) {
+          const nextQty = Math.min(item.maxStock || 99, existing.quantity + item.quantity);
+          return prev.map((line) => (line.key === key ? { ...line, quantity: nextQty } : line));
+        }
+        return [...prev, { ...item, key }];
+      });
+      toast.success("Added to bag", { description: `${item.name} · ${item.size} / ${item.color}` });
+    })();
   };
 
   const removeFromCart = (key: string) => {
@@ -131,6 +167,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
   const clearCart = () => setCart([]);
 
   const toggleWishlist = async (productId: string, name?: string) => {
+    if (!(await ensureSignedIn("Sign in to keep a wishlist across devices."))) return;
     const isRemoving = wishlist.includes(productId);
     setWishlist((prev) => (isRemoving ? prev.filter((id) => id !== productId) : [...prev, productId]));
     toast(isRemoving ? "Removed from wishlist" : "Saved to wishlist", name ? { description: name } : undefined);
@@ -154,6 +191,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
     updateQuantity,
     clearCart,
     cartReady,
+    signedIn,
     wishlist,
     wishlistReady,
     toggleWishlist,
