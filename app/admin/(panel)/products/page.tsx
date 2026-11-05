@@ -109,14 +109,22 @@ export default async function AdminProductsPage({
                 <TD>
                   <div className="flex items-center justify-end gap-1.5">
                     <ActionButton
-                      action={async () => setProductFlags(String(product._id), { status: product.status === "published" ? "draft" : "published" })}
+                      action={async () => {
+                        "use server";
+                        return setProductFlags(String(product._id), {
+                          status: product.status === "published" ? "draft" : "published",
+                        });
+                      }}
                       label={product.status === "published" ? "Unpublish" : "Publish"}
                     />
                     <Link href={`/admin/products/${product._id}`} className="rounded-full border border-line px-3 py-2 text-[10px] uppercase tracking-wide2 text-ink hover:border-ink">
                       Edit
                     </Link>
                     <ActionButton
-                      action={async () => deleteProduct(String(product._id))}
+                      action={async () => {
+                        "use server";
+                        return deleteProduct(String(product._id));
+                      }}
                       label="Delete"
                       destructive
                       confirmTitle="Delete this product?"

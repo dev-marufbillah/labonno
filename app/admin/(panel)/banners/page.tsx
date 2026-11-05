@@ -52,11 +52,17 @@ export default async function AdminBannersPage() {
                   <div className="flex items-center justify-end gap-1.5">
                     <BannerDialog banner={banner} />
                     <ActionButton
-                      action={async () => saveBanner({ ...banner, visible: !banner.visible }, String(banner._id))}
+                      action={async () => {
+                        "use server";
+                        return saveBanner({ ...banner, visible: !banner.visible }, String(banner._id));
+                      }}
                       label={banner.visible ? "Hide" : "Show"}
                     />
                     <ActionButton
-                      action={async () => deleteBanner(String(banner._id))}
+                      action={async () => {
+                        "use server";
+                        return deleteBanner(String(banner._id));
+                      }}
                       label="Delete"
                       destructive
                       confirmTitle="Delete this banner?"

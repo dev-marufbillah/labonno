@@ -45,6 +45,12 @@ export function SectionEditor({
     Array.isArray(data.productIds) ? (data.productIds as string[]) : []
   );
   const [seeAll, setSeeAll] = React.useState(data.seeAll !== false);
+  const [seeAllLabel, setSeeAllLabel] = React.useState(
+    typeof data.seeAllLabel === "string" ? data.seeAllLabel : "See all"
+  );
+  const [seeAllHref, setSeeAllHref] = React.useState(
+    typeof data.seeAllHref === "string" ? data.seeAllHref : "/categories"
+  );
   const [productQuery, setProductQuery] = React.useState("");
 
   const toggleCategory = (slug: string) =>
@@ -74,6 +80,8 @@ export function SectionEditor({
             productIds,
             categorySlugs,
             seeAll,
+            seeAllLabel,
+            seeAllHref,
             ...(body ? { body } : {}),
             ctaLabel,
             ctaHref,
@@ -139,7 +147,7 @@ export function SectionEditor({
               <div className="flex items-center justify-between">
                 <Label>Categories in this row</Label>
                 <div className="flex items-center gap-2 text-[10.5px] text-ink-muted">
-                  <Switch checked={seeAll} onCheckedChange={setSeeAll} /> “See all” tile
+                  <Switch checked={seeAll} onCheckedChange={setSeeAll} /> “See all” arrow after the arches
                 </div>
               </div>
               <p className="text-[10.5px] text-ink-muted">
@@ -168,6 +176,22 @@ export function SectionEditor({
                   );
                 })}
               </div>
+              {seeAll ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label>Arrow label</Label>
+                    <Input value={seeAllLabel} onChange={(event) => setSeeAllLabel(event.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Arrow goes to</Label>
+                    <Input
+                      value={seeAllHref}
+                      onChange={(event) => setSeeAllHref(event.target.value)}
+                      placeholder="/categories"
+                    />
+                  </div>
+                </div>
+              ) : null}
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label>How many arches</Label>

@@ -66,7 +66,13 @@ export default async function HomePage() {
     minSubtotal: coupon.minSubtotal ?? 0,
   }));
 
-  const visibleCategories = categories.filter((c) => c.showOnHome);
+  /**
+   * Arch row source. "Show on home" is the owner's wish, but a database where nobody
+   * ticked it (or where the seed ran half-way) used to render an empty row — so we fall
+   * back to every visible category instead of showing a gap.
+   */
+  const flaggedForHome = categories.filter((c) => c.showOnHome);
+  const visibleCategories = flaggedForHome.length > 0 ? flaggedForHome : categories.filter((c) => c.visible !== false);
 
   const slides: HeroSlide[] =
     banners.length > 0
@@ -101,9 +107,11 @@ export default async function HomePage() {
 
       case "category_arches": {
         const slugs = Array.isArray(data.categorySlugs) ? (data.categorySlugs as string[]) : [];
-        const list = slugs.length
+        const picked = slugs.length
           ? (slugs.map((slug) => visibleCategories.find((c) => c.slug === slug)).filter(Boolean) as typeof visibleCategories)
           : visibleCategories;
+        // Hand-picked slugs that no longer exist must not empty the row.
+        const list = picked.length > 0 ? picked : visibleCategories;
         return (
           <CategoryArches
             key={section.key}
@@ -111,6 +119,7 @@ export default async function HomePage() {
             limit={typeof data.limit === "number" ? data.limit : 4}
             showSeeAll={data.seeAll !== false}
             seeAllHref={typeof data.seeAllHref === "string" && data.seeAllHref ? data.seeAllHref : "/categories"}
+            seeAllLabel={str("seeAllLabel", "See all")}
           />
         );
       }

@@ -49,11 +49,17 @@ export default async function AdminCouponsPage() {
                   <div className="flex items-center justify-end gap-1.5">
                     <CouponDialog coupon={coupon} />
                     <ActionButton
-                      action={async () => saveCoupon({ ...coupon, active: !coupon.active }, String(coupon._id))}
+                      action={async () => {
+                        "use server";
+                        return saveCoupon({ ...coupon, active: !coupon.active }, String(coupon._id));
+                      }}
                       label={coupon.active ? "Pause" : "Activate"}
                     />
                     <ActionButton
-                      action={async () => deleteCoupon(String(coupon._id))}
+                      action={async () => {
+                        "use server";
+                        return deleteCoupon(String(coupon._id));
+                      }}
                       label="Delete"
                       destructive
                       confirmTitle="Delete this coupon?"

@@ -48,7 +48,10 @@ export default async function AdminPagesPage() {
                     <div className="flex items-center justify-end gap-1.5">
                       <PageDialog page={page} />
                       <ActionButton
-                        action={async () => deletePage(String(page._id))}
+                        action={async () => {
+                          "use server";
+                          return deletePage(String(page._id));
+                        }}
                         label="Delete"
                         destructive
                         confirmTitle="Delete this page?"
@@ -89,7 +92,10 @@ export default async function AdminPagesPage() {
                     <div className="flex items-center justify-end gap-1.5">
                       <FaqDialog faq={faq} />
                       <ActionButton
-                        action={async () => deleteFaq(String(faq._id))}
+                        action={async () => {
+                          "use server";
+                          return deleteFaq(String(faq._id));
+                        }}
                         label="Delete"
                         destructive
                         confirmTitle="Delete this FAQ?"

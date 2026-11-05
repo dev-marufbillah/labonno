@@ -27,7 +27,7 @@ export default async function AdminHomepagePage() {
     <div>
       <AdminPageTitle
         title="Homepage builder"
-        description="Show, hide, reorder and edit every section — pick which categories fill the arch row and which products sit in each grid."
+        description="Every section below can be hidden from the homepage with one click (Hide / Show), moved up or down, or edited — pick which categories fill the arch row, where its arrow points, and which products sit in each grid."
         action={
           <Link href="/" className="rounded-full border border-line px-5 py-2.5 text-[10px] uppercase tracking-label text-ink hover:border-ink">
             Preview homepage
@@ -35,7 +35,10 @@ export default async function AdminHomepagePage() {
         }
       />
 
-      <Panel title="Sections" description="Order controls the vertical position on the homepage.">
+      <Panel
+        title="Sections"
+        description="Hide / Show = the section stops or starts appearing on the homepage. Order controls the vertical position."
+      >
         <ul className="divide-y divide-line">
           {sections.map((section, index) => (
             <li key={section.key} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
@@ -51,22 +54,34 @@ export default async function AdminHomepagePage() {
               </div>
               <div className="flex items-center gap-1.5">
                 <ActionButton
-                  action={async () => moveSection(section.key, "up")}
+                  action={async () => {
+                    "use server";
+                    return moveSection(section.key, "up");
+                  }}
                   label={<ArrowUp className="size-3" />}
                   variant="subtle"
                   size="icon"
                 />
                 <ActionButton
-                  action={async () => moveSection(section.key, "down")}
+                  action={async () => {
+                    "use server";
+                    return moveSection(section.key, "down");
+                  }}
                   label={<ArrowDown className="size-3" />}
                   variant="subtle"
                   size="icon"
                 />
+                {/* Show / hide this whole section on the homepage. */}
                 <ActionButton
-                  action={async () => toggleSection(section.key, !section.visible)}
-                  label={section.visible ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                  action={async () => {
+                    "use server";
+                    return toggleSection(section.key, !section.visible);
+                  }}
+                  icon={section.visible ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                  label={section.visible ? "Hide" : "Show"}
+                  busyLabel="..."
                   variant="subtle"
-                  size="icon"
+                  size="sm"
                 />
                 <SectionEditor
                   section={section}

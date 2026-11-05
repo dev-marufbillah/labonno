@@ -58,7 +58,10 @@ export default async function AdminCategoriesPage() {
                   <div className="flex items-center justify-end gap-1.5">
                     <CategoryDialog category={category} />
                     <ActionButton
-                      action={async () => deleteCategory(String(category._id))}
+                      action={async () => {
+                        "use server";
+                        return deleteCategory(String(category._id));
+                      }}
                       label="Delete"
                       destructive
                       confirmTitle="Delete this category?"

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { listMedia, cloudinaryConfigured } from "@/lib/services/media";
+import { UrlField } from "@/components/admin/url-field";
 import { AdminPageTitle, Panel } from "@/components/admin/ui";
 import { MediaUploader } from "@/components/admin/media-uploader";
 import { MediaDeleteButton } from "@/components/admin/media-delete-button";
@@ -38,12 +39,7 @@ export default async function AdminMediaPage() {
                 <div className="p-2.5">
                   <p className="truncate text-[11px] text-ink">{item.alt}</p>
                   <p className="text-[9.5px] uppercase tracking-wide2 text-ink-muted">{item.folder} · {formatDate(item.createdAt)}</p>
-                  <input
-                    readOnly
-                    value={item.url}
-                    onFocus={(event) => event.currentTarget.select()}
-                    className="mt-1.5 w-full rounded border border-line bg-white/70 px-1.5 py-1 text-[9.5px] text-ink-muted"
-                  />
+                  <UrlField value={item.url} />
                   <MediaDeleteButton id={String(item._id)} url={item.url} />
                 </div>
               </li>

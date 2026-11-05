@@ -51,7 +51,10 @@ export default async function AdminCollectionsPage() {
                   <div className="flex items-center justify-end gap-1.5">
                     <CollectionDialog collection={collection} />
                     <ActionButton
-                      action={async () => deleteCollection(String(collection._id))}
+                      action={async () => {
+                        "use server";
+                        return deleteCollection(String(collection._id));
+                      }}
                       label="Delete"
                       destructive
                       confirmTitle="Delete this collection?"

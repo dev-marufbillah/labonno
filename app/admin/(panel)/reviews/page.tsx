@@ -77,13 +77,22 @@ export default async function AdminReviewsPage({ searchParams }: { searchParams:
                 <TD>
                   <div className="flex items-center justify-end gap-1.5">
                     {review.status !== "approved" ? (
-                      <ActionButton action={async () => setReviewStatus(String(review._id), "approved")} label="Approve" />
+                      <ActionButton action={async () => {
+                        "use server";
+                        return setReviewStatus(String(review._id), "approved");
+                      }} label="Approve" />
                     ) : null}
                     {review.status !== "rejected" ? (
-                      <ActionButton action={async () => setReviewStatus(String(review._id), "rejected")} label="Reject" />
+                      <ActionButton action={async () => {
+                        "use server";
+                        return setReviewStatus(String(review._id), "rejected");
+                      }} label="Reject" />
                     ) : null}
                     <ActionButton
-                      action={async () => deleteReview(String(review._id))}
+                      action={async () => {
+                        "use server";
+                        return deleteReview(String(review._id));
+                      }}
                       label="Delete"
                       destructive
                       confirmTitle="Delete this review?"
